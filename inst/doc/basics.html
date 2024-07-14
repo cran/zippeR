@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Basics of ZIP Codes and ZCTAs</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Basics of ZIP Codes and ZCTAs</h1>
+
+
+
+<p>In the United States, ZIP Codes are used to facilitate postal
+deliveries. They are created and maintained by the United States Postal
+Service (USPS), but are also required by other shippers and appear in a
+variety of administrative data contexts. ZIP stands for “Zone
+Improvement Plan,” which was introduced in 1963.</p>
+<div id="zip-code-basics" class="section level2">
+<h2>ZIP Code Basics</h2>
+<p>A complete ZIP Code consists of two elements - a five-digit number
+and a four-digit number. Together, these nine digits represent a
+specific delivery area (sometimes referred to as a carrier route). The
+first five digits, which we’ll refer to as ZIP Codes for shorthand,
+represent one of the following:</p>
+<ol style="list-style-type: decimal">
+<li>a general delivery area,</li>
+<li>a Post Office, to facilitate deliveries to PO Boxes,</li>
+<li>or a single high-volume customer, such as a university, federal
+agency, or large company.</li>
+</ol>
+<p>The most common form of a ZIP Code is the general delivery area.
+While we imagine these to be distinct, non-overlapping regions on a map,
+they are actually collections of carrier routes that sometimes overlap
+with each other.</p>
+<p>Those individual carrier routes are represented by the second,
+four-digit number. These may correspond to a particular city block,
+apartment building, or other delivery area within a ZIP Code. For PO
+Boxes, individual boxes may be assigned their own four-digit number.
+Generally speaking, the four-digit add-on is not especially useful for
+RWE.</p>
+<p>ZIP codes are assigned to four types of jurisdictions:</p>
+<ol style="list-style-type: decimal">
+<li>states,</li>
+<li>the District of Columbia,</li>
+<li>insular areas, which include:
+<ol style="list-style-type: decimal">
+<li>five inhabited territories (American Samoa, Guam, the Northern
+Mariana Islands, Puerto Rico, and United States Virgin Islands)</li>
+<li>as well three independent nations (the Federated States of
+Micronesia, the Republic of the Marshall Islands, and the Republic of
+Palau) that are part of the Compact of Free Association (COFA), and</li>
+</ol></li>
+<li>federal facilities in other countries, most notably Department of
+Defense installations.</li>
+</ol>
+<p>The Compact of Free Association (COFA) is a wide-ranging legal
+agreement that gives the three nations access to many U.S. federal
+services usually considered domestic programs. This includes USPS
+deliveries, and so all three nations are assigned ZIP Codes as well.</p>
+<p>ZIP Codes <em>generally</em> are patterned regionally, with ZIP Codes
+beginning with <code>0</code> being located in the Northeast. Values
+increase westward, with the highest ZIP Codes in Alaska, Hawaii, and
+islands in the Pacific. These ZIP Codes all begin with a
+<code>9</code>.</p>
+<p>States are assigned one or more initial digits. For example, New York
+State primarily has ZIP Codes beginning with values between
+<code>10</code> and <code>14</code> for their first two digits. However,
+there are routine exceptions. <code>06390</code> (Fishers Island) is
+also a valid ZIP Code in New York even though it begins with
+<code>0</code>. Likewise, federal agencies located in Maryland and
+Virginia have Washington, D.C. assigned ZIP Codes. The first digit,
+therefore, <strong>does not</strong> correspond to Census Region or
+Division, and it is <strong>not</strong> possible to aggregate up to
+those geographies based on the first digit alone. ZIP Codes also
+<strong>cannot</strong> be aggregated to counties or states with
+complete accuracy.</p>
+<p>Since ZIP Codes are designed to facilitate the delivery of mail, and
+not other uses, they do not neatly nest into other jurisdictional
+boundaries. They regularly cross county boundaries, and sometimes cross
+state boundaries as well, especially in rural areas where postal
+delivery is best facilitated from a neighboring state.</p>
+<p>Finally, it is important to know that ZIP Codes are not permanent.
+Carrier routes are updated frequently, and even the ZIP Codes themselves
+are subject to revision occasionally. For example, some ZIP Codes have
+been split to accommodate population growth and housing
+construction.</p>
+</div>
+<div id="three-digit-zip-codes" class="section level2">
+<h2>Three-Digit ZIP Codes</h2>
+<p>Three-digit ZIP Codes have a specific meaning for the USPS, and are
+sometimes also used in patient-level data to preserve confidentiality.
+More details on working with three-digit ZIPs can be found in a <a href="three-digit-zips.html">separate vignette</a>.</p>
+</div>
+<div id="zip-code-tabulation-areas" class="section level2">
+<h2>ZIP Code Tabulation Areas</h2>
+<p>The USPS does not publish a map of ZIP Codes because carrier routes
+are constantly changing and being revised. Moreover, since ZIP Codes are
+not areas on maps as we imagine them, they are not suitable for
+aggregation or analysis. The Census Bureau has created ZIP Code
+Tabulation Areas (ZCTAs) to approximate ZIP Code areas for the purposes
+of data analysis and mapping. ZCTAs are created by aggregating Census
+blocks that have the same first three digits of their ZIP Codes. This
+means that ZCTAs are not the same as ZIP Codes, and they are not the
+same as carrier routes. They are a useful approximation for many
+purposes, but they are not perfect. ZCTAs are updated every year, though
+the most significant updates occur every decade with the release of the
+Decennial Census.</p>
+<p>ZCTAs are created by identifying the most common ZIP Code within each
+Census Block, and then dissolving those individual Census Blocks
+together to create a single polygon. This results in misclassification
+at the address-level, where some address points within a given Census
+Block will be assigned a ZCTA that differs from their individual ZIP
+Code. Correcting this form misclassification requires point-level
+address data, which may be available in some areas but are not available
+for the entire United States. Addressing this problem is beyond the
+scope of <code>zippeR</code>.</p>
+<p>ZCTAs are not created for areas that have no population, or areas
+that have very sparse populations. This affects areas in the American
+West, for example, that have very few residents.</p>
+<p>Finally, it is important to note that not all ZIP Codes have an
+analogous ZCTA. Some ZIP Codes are used for Post Office Boxes, and these
+are not included in the ZCTA data. Using ZIP to ZCTA crosswalk files can
+help address this form of misclassification, and is the subject of a
+separate vignette.</p>
+</div>
+<div id="zip-code-and-zcta-formatting" class="section level2">
+<h2>ZIP Code and ZCTA Formatting</h2>
+<p>One of the core features of <code>zippeR</code> validate inputs of
+ZIP codes or ZCTA codes. For example, here are a set of ZCTAs that lie
+on the Missouri/Iowa border:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>zcta5 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;51640&quot;</span>, <span class="st">&quot;52542&quot;</span>, <span class="st">&quot;52573&quot;</span>, <span class="st">&quot;5262x&quot;</span>)</span></code></pre></div>
+<p>Notice how the last element contains a non-numeric character. When
+<code>zcta5</code> is passed to <code>zi_validate()</code>, it will
+catch the formatting issue. There are two options, one of which returns
+a single logical value (<code>TRUE</code> or <code>FALSE</code>):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">library</span>(zippeR)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_validate</span>(zcta5)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>[<span class="dv">1</span>] <span class="cn">FALSE</span></span></code></pre></div>
+<p>The other option, with <code>verbose = TRUE</code>, provides
+additional data about where formatting issues may exist:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_validate</span>(zcta5, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># A tibble: 4 × 2</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  condition                                   result</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="sc">&lt;</span>chr<span class="sc">&gt;</span>                                       <span class="er">&lt;</span>lgl<span class="sc">&gt;</span> </span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="dv">1</span> Input is a character vector?                <span class="cn">TRUE</span>  </span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="dv">2</span> All input values have <span class="dv">5</span> characters?         <span class="cn">TRUE</span>  </span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="dv">3</span> No input values are over <span class="dv">5</span> characters long? <span class="cn">TRUE</span>  </span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="dv">4</span> All input values are numeric?               <span class="cn">FALSE</span> </span></code></pre></div>
+<p>For the third and fourth tests, users are strongly encourage to
+attempt to manually correct problems. However, <code>zi_repair()</code>
+can be used to address the first and second tests, and will return
+<code>NA</code> values for ZIPs or ZCTAs that do not pass the third and
+fourth tests:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_repair</span>(zcta5)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>[<span class="dv">1</span>] <span class="st">&quot;51640&quot;</span> <span class="st">&quot;52542&quot;</span> <span class="st">&quot;52573&quot;</span> <span class="cn">NA</span>     </span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>Warning message<span class="sc">:</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>In <span class="fu">zi_repair</span>(zcta5) <span class="sc">:</span> NAs introduced by coercion</span></code></pre></div>
+<p>When malformed ZIPs or ZCTAs are replaced with <code>NA</code>
+values, <code>zi_repair()</code> will return a warning. Note that
+<code>zi_validate()</code> also works with three-digit ZCTAs as
+well:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="sc">&gt;</span> zcta3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;516&quot;</span>, <span class="st">&quot;525&quot;</span>, <span class="st">&quot;526&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_validate</span>(zcta3, <span class="at">style =</span> <span class="st">&quot;zcta3&quot;</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>[<span class="dv">1</span>] <span class="cn">TRUE</span></span></code></pre></div>
+<p>Note that, at this time, the validation process does not ensure that
+inputs correspond to valid ZCTAs.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

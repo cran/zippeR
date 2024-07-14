@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Three-digit ZIP Codes and ZCTAs</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Three-digit ZIP Codes and ZCTAs</h1>
+
+
+
+<p>Three-digit ZIP Codes appear frequently in real world health care
+data. Since patient registration and medical billing rely on patient
+addresses, they are common data elements in EHR and medical claims
+information systems. Providing the first three digits of a ZIP Code is a
+common data strategy vendors seek to provide geographic data while
+protecting patient privacy. Unfortunately, ZIP Codes are difficult to
+work with, and utilizing three-digit versions offers additional
+challenges.</p>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>Three-digit ZIP Codes refer to a group of ZIP Codes that share the
+same first three digits. For example, the St. Louis, Missouri ZIP Codes
+63101, 63102, and 63103 would all be part of the 631 three-digit ZIP
+Code. These first three digits correspond to “sectional center
+facilities” (SCFs) operated by the United States Postal Service (USPS).
+Sectional center facilities sit between larger “network distribution
+centers” (NDCs) and local post offices, sorting and distributing mail.
+Each SCF has one more three-digit ZIP Codes associated with it. The SCF
+for St. Louis is in St. Louis City, Missouri, and it services
+approximately a dozen three-digit ZIP Codes in Eastern Missouri and
+Southern Illinois.</p>
+<p>Unlike five-digit ZIP Codes, which have the Census Bureau analogue of
+ZIP Code Tabulation Areas (ZCTAs), there is no Census equivalent for
+three-digit ZIP Codes. This is because three-digit ZIP Codes are not
+geographic areas, but rather mail sorting facilities. Aggregating ZCTAs
+using their first three digits illustrate yet another challenge - the
+boundaries of three-digit ZCTAs are not contiguous. This means that some
+ZCTAs are split into multiple pieces that are not adjacent to each
+other.</p>
+<p>When the first three-digits are the only three digits given, it is
+not possible to use the ZIP to ZCTA crosswalk files included in
+<code>zippeR</code>. This increases the misclassification rate, because
+some of the observations will be assigned to the wrong three-digit ZCTA.
+For example, the ZIP Code 64999 in Kansas City is part of the 649
+three-digit ZIP Code, but it is not part of the 649 three-digit ZCTA.
+According to the 2022 UDS crosswalk file, the appropriate ZCTA for 64999
+is 64108, which has the 641 three-digit ZIP Code.</p>
+<p><code>zippeR</code> provides several functions for downloading and
+using three-digit ZCTA data. They should be used with caution and the
+user should be aware of the limitations of the data described above.</p>
+</div>
+<div id="labeling-three-digit-zip-codes" class="section level2">
+<h2>Labeling Three-digit ZIP Codes</h2>
+<p>The <code>zi_load_labels()</code> function can be used to load a set
+of labels for three-digit ZIP Codes. The function requires a
+<code>type</code> argument, which should be set to <code>&quot;zip3&quot;</code>.
+The function will return a tibble with the area and state associated
+with the SCF assigned to a particular three-digit ZIP.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_load_labels</span>(<span class="at">source =</span> <span class="st">&quot;USPS&quot;</span>, <span class="at">type =</span> <span class="st">&quot;zip3&quot;</span>, <span class="at">vintage =</span> <span class="dv">202408</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># A tibble: 931 × 3                                                                                                                                                                                    </span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>   zip3  label_area label_state</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>   <span class="sc">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>      <span class="er">&lt;</span>chr<span class="sc">&gt;</span>      </span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a> <span class="dv">1</span> <span class="dv">005</span>   MID<span class="sc">-</span>ISLAND NY         </span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a> <span class="dv">2</span> <span class="dv">006</span>   SAN JUAN   PR         </span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a> <span class="dv">3</span> <span class="dv">007</span>   SAN JUAN   PR         </span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a> <span class="dv">4</span> <span class="dv">008</span>   SAN JUAN   PR         </span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a> <span class="dv">5</span> <span class="dv">009</span>   SAN JUAN   PR         </span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a> <span class="dv">6</span> <span class="dv">010</span>   HARTFORD   CT         </span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a> <span class="dv">7</span> <span class="dv">011</span>   HARTFORD   CT         </span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a> <span class="dv">8</span> <span class="dv">012</span>   HARTFORD   CT         </span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a> <span class="dv">9</span> <span class="dv">013</span>   CENTRAL    MA         </span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="dv">10</span> <span class="dv">014</span>   CENTRAL    MA         </span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co"># ℹ 921 more rows</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># ℹ Use `print(n = ...)` to see more rows</span></span></code></pre></div>
+<p>Use these values with caution - the area and state may not correspond
+to the physical location of associated five-digit ZIP Codes. For
+example, the three-digit ZIP <code>010</code> covers Western
+Massachusetts. However, the SCF that serves it is located in Hartford,
+CT. The <code>label_area</code> and <code>label_state</code> values are
+based on the SCF location, not the geographic area served by the
+three-digit ZIP Code.</p>
+<p>The <code>zi_label()</code> function can be used to label your data
+with these values. If you have five-digit ZIP Codes and you want to
+convert them to three-digit ZIPs, the <code>zi_convert()</code> function
+is a helpful tool for shortening those values quickly.</p>
+</div>
+<div id="downloading-geometric-data-for-three-digit-zctas" class="section level2">
+<h2>Downloading Geometric Data for Three-digit ZCTAs</h2>
+<p>Three-digit ZCTA geometric data can be downloaded using
+<code>zi_get_geometry()</code>. The following syntax downloads all ZCTA3
+for the United States, excluding overseas territories:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>zcta3 <span class="ot">&lt;-</span> <span class="fu">zi_get_geometry</span>(<span class="at">year =</span> <span class="dv">2020</span>, <span class="at">style =</span> <span class="st">&quot;zcta3&quot;</span>, <span class="at">territory =</span> <span class="cn">NULL</span>, <span class="at">method =</span> <span class="st">&quot;intersect&quot;</span>)</span></code></pre></div>
+<p>Optionally, you can specify a specific state, county, or territory to
+limit your data object’s extent:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mo_zcta3 <span class="ot">&lt;-</span> <span class="fu">zi_get_geometry</span>(<span class="at">year =</span> <span class="dv">2020</span>, <span class="at">style =</span> <span class="st">&quot;zcta3&quot;</span>, <span class="at">state =</span> <span class="st">&quot;MO&quot;</span>, <span class="at">territory =</span> <span class="cn">NULL</span>, <span class="at">method =</span> <span class="st">&quot;intersect&quot;</span>)</span></code></pre></div>
+<p>The <code>zi_get_geometry()</code> function downloads pre-made
+geometric data from the Census Bureau’s TIGER/Line Shapefiles, which
+were created by downloading the ZCTA data, grouping features by the
+first three digits of the ZCTA, and then summarizing the features to
+dissolve them. Finally,
+<code>sf::st_simplify(out, preserveTopology = TRUE, dTolerance = 20)</code>
+was used to simplify the features and reduce the size of each file.</p>
+<p>Data are available from 2010 through 2023, excluding 2011. If a
+specific state or county is requested using those optional arguments,
+included ZCTAs are defined using either
+<code>method = &quot;intersect&quot;</code> or <code>method = &quot;centroid&quot;</code>.
+The <code>&quot;intersect&quot;</code> approach includes any ZCTA that touches a
+given state or county with an area greater than <code>0</code>, while
+the <code>&quot;centroid&quot;</code> approach includes any ZCTA whose geographic
+midpoint lies within the requested state or county.</p>
+</div>
+<div id="creating-demographic-estimates-for-three-digit-zctas" class="section level2">
+<h2>Creating Demographic Estimates for Three-digit ZCTAs</h2>
+<p>Creating a master list of three-digit ZCTAs is a pre-requisite for
+creating demographic estimates for these geographies. The object we
+created above, <code>mo_zcta3</code>, has a <code>ZCTA3</code> column
+that can serve as that reference. Once you have your list, you should
+download demographic data using <code>zi_get_demographics()</code>. For
+example, to download population estimates for 2020, you would use the
+following code:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>mo_pop20 <span class="ot">&lt;-</span> <span class="fu">zi_get_demographics</span>(<span class="at">year =</span> <span class="dv">2020</span>, <span class="at">variables =</span> <span class="st">&quot;B01003_001&quot;</span>, <span class="at">survey =</span> <span class="st">&quot;acs5&quot;</span>)</span></code></pre></div>
+<p>Be sure not to limit your download with the <code>zcta</code>
+argument. It is important that all ZCTAs are included in the download,
+even if they are not in the list of three-digit ZCTAs. If only the
+five-digit ZCTAs that overlap with your state or county of interest are
+included, you will get incorrect values for ZCTAs that are split across
+multiple jurisdictions.</p>
+<p>Once these are obtained, we can pass the object to
+<code>zi_aggregate()</code> and can specify an input for
+<code>zcta</code> at this stage:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>mo_pop20 <span class="ot">&lt;-</span> <span class="fu">zi_aggregate</span>(mo_pop20, <span class="at">year =</span> <span class="dv">2020</span>, <span class="at">extensive =</span> <span class="st">&quot;B01003_001&quot;</span>, <span class="at">survey =</span> <span class="st">&quot;acs5&quot;</span>, <span class="at">zcta =</span> mo_zcta3<span class="sc">$</span>ZCTA3)</span></code></pre></div>
+<p>This will aggregate the population estimates for the five-digit ZCTAs
+to the three-digit ZCTAs.</p>
+<p>The <code>zi_aggregate()</code> function requires that you specify
+two sets of variable lists - those that are <code>extensive</code>
+(i.e. count data) and those that are <code>intensive</code> (i.e. ratio
+or median data). For <code>extensive</code> data,
+<code>zi_aggregate()</code> sums the estimates and applies a formula to
+the margins of error (the square root of the sum of squared margins of
+error for each five-digit ZCTA within a three-digit region). For
+<code>intensive</code> variables, a weighted mean or median is used for
+both the estimate and the margin of error. Note that you can pipe this
+workflow and can specify multiple variables at once for aggregation:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">zi_get_demographics</span>(<span class="at">year =</span> <span class="dv">2020</span>, <span class="at">variables =</span> <span class="fu">c</span>(<span class="st">&quot;B01003_001&quot;</span>, <span class="st">&quot;B19083_001&quot;</span>), <span class="at">survey =</span> <span class="st">&quot;acs5&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">zi_aggregate</span>(<span class="at">year =</span> <span class="dv">2020</span>, <span class="at">extensive =</span> <span class="st">&quot;B01003_001&quot;</span>, <span class="at">intensive =</span> <span class="st">&quot;B19083_001&quot;</span>, <span class="at">survey =</span> <span class="st">&quot;acs5&quot;</span>) <span class="ot">-&gt;</span> demo20</span></code></pre></div>
+<p>The <code>variables</code>, <code>table</code> (which can be used in
+place of <code>variables</code> for <code>zi_get_demographics()</code>),
+<code>extensive</code>, and <code>intensive</code> arguments are not
+validated before being passed via <code>tidycensus</code> to the Census
+Bureau, so incorrectly formatted variable or table names will generate
+potentially cryptic errors.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>Three-digit ZIP codes are common, especially in health care data, but
+are challenging to work with. While <code>zippeR</code> provides a set
+of tools for calculating demographic estimates from the American
+Community Survey and mapping them, this should be done with caution
+based on the limitations described above.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Converting ZIP Codes to Other Geographies</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Converting ZIP Codes to Other
+Geographies</h1>
+
+
+
+<p>As we’ve noted in our basic overview of ZIP Codes, they are identical
+to the U.S. Census Bureau’s ZIP Code Tabulation Areas or other
+geographies. We therefore use crosswalk files to convert ZIP Codes to
+these other identifiers.</p>
+<div id="udss-zip-code-to-zcta-crosswalks" class="section level2">
+<h2>UDS’s ZIP Code to ZCTA Crosswalks</h2>
+<p><code>zippeR</code> provides an interface for accessing the former
+UDS Mapper project’s ZIP to ZCTA crosswalk files](<a href="http://web.archive.org/web/20231218141557/https://udsmapper.org/zip-code-to-zcta-crosswalk/" class="uri">http://web.archive.org/web/20231218141557/https://udsmapper.org/zip-code-to-zcta-crosswalk/</a>).
+Crosswalk files are critical because not all ZIP codes are in the exact
+same ZCTA. The UDS files are available from 2010 through 2021 in a
+standardized format:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">year =</span> <span class="dv">2020</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># A tibble: 41,096 × 6                                                                                                                                                                                 </span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>   ZIP   PO_NAME    STATE ZIP_TYPE                             ZCTA  zip_join_type       </span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>   <span class="sc">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>      <span class="er">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>                                <span class="er">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>               </span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a> <span class="dv">1</span> <span class="dv">00501</span> Holtsville NY    Post Office or large volume customer <span class="dv">11742</span> Spatial join to ZCTA</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a> <span class="dv">2</span> <span class="dv">00544</span> Holtsville NY    Post Office or large volume customer <span class="dv">11742</span> Spatial join to ZCTA</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a> <span class="dv">3</span> <span class="dv">00601</span> Adjuntas   PR    ZIP Code Area                        <span class="dv">00601</span> ZIP Matches ZCTA    </span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a> <span class="dv">4</span> <span class="dv">00602</span> Aguada     PR    ZIP Code Area                        <span class="dv">00602</span> ZIP Matches ZCTA    </span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a> <span class="dv">5</span> <span class="dv">00603</span> Aguadilla  PR    ZIP Code Area                        <span class="dv">00603</span> ZIP Matches ZCTA    </span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a> <span class="dv">6</span> <span class="dv">00604</span> Aguadilla  PR    Post Office or large volume customer <span class="dv">00603</span> Spatial join to ZCTA</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a> <span class="dv">7</span> <span class="dv">00605</span> Aguadilla  PR    Post Office or large volume customer <span class="dv">00603</span> Spatial join to ZCTA</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a> <span class="dv">8</span> <span class="dv">00606</span> Maricao    PR    ZIP Code Area                        <span class="dv">00606</span> ZIP Matches ZCTA    </span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a> <span class="dv">9</span> <span class="dv">00610</span> Anasco     PR    ZIP Code Area                        <span class="dv">00610</span> ZIP Matches ZCTA    </span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="dv">10</span> <span class="dv">00611</span> Angeles    PR    Post Office or large volume customer <span class="dv">00641</span> Spatial join to ZCTA</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co"># … with 41,086 more rows</span></span></code></pre></div>
+<p>As with the three-digit ZCTA geometry, users should evaluate these
+data carefully before using them to ensure they are fit for purpose. In
+particular, they should note that ZIPs that do not have corresponding
+ZCTAs (such as Armed Forces mailing ZIPs and those in some overseas
+territories) are not included. Users should also remember that
+individuals may live in a different ZCTA from their mailing address when
+that address is a Post Office or some other large volume customer.</p>
+<p>They can be used with <code>zi_crosswalk()</code> to convert given
+ZIP codes to ZCTAs:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="sc">&gt;</span> zips <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), <span class="at">ZIP =</span> <span class="fu">c</span>(<span class="st">&quot;63139&quot;</span>, <span class="st">&quot;63108&quot;</span>, <span class="st">&quot;00501&quot;</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_crosswalk</span>(zips, <span class="at">input_zip =</span> ZIP, <span class="at">dict =</span> <span class="st">&quot;UDS 2021&quot;</span>) </span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 3                                                                                                                                                                                      </span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>     id ZIP   ZCTA </span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="sc">&lt;</span>int<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="dv">1</span>     <span class="dv">1</span> <span class="dv">63139</span> <span class="dv">63139</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="dv">2</span>     <span class="dv">2</span> <span class="dv">63108</span> <span class="dv">63108</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="dv">3</span>     <span class="dv">3</span> <span class="dv">00501</span> <span class="dv">11742</span></span></code></pre></div>
+<p>If <code>&quot;UDS 2021&quot;</code> (or any other year between 2009 and 2023)
+is given for <code>dict</code>, <code>zi_crosswalk()</code> will
+automatically download the corresponding UDS crosswalk file. A custom
+crosswalk can also be supplied for <code>dict</code> in lieu of using
+the UDS data, including a crosswalk created from
+<code>zi_load_crosswalk()</code> using HUD data. In that case,
+<code>dict_zip</code> and <code>dict_zcta</code> should be updated to
+correctly match input variable names. <code>style</code> can also be
+used if the custom dictionary contains three digit ZCTAs instead. If no
+custom dictionary is supplied, <code>zi_crosswalk()</code> will try to
+convert the dictionary’s five-digit ZCTAs to three-digits:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_crosswalk</span>(zips, <span class="at">input_zip =</span> ZIP, <span class="at">dict =</span> <span class="st">&quot;UDS 2021&quot;</span>, <span class="at">style =</span> <span class="st">&quot;zcta3&quot;</span>) </span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>Dictionary five<span class="sc">-</span>digit ZCTAs converted to three<span class="sc">-</span>digit ZCTAs.                                                                                                                                            </span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 3</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>     id ZIP   ZCTA3</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="sc">&lt;</span>int<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="dv">1</span>     <span class="dv">1</span> <span class="dv">63139</span> <span class="dv">631</span>  </span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="dv">2</span>     <span class="dv">2</span> <span class="dv">63108</span> <span class="dv">631</span>  </span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="dv">3</span>     <span class="dv">3</span> <span class="dv">00501</span> <span class="dv">117</span>  </span></code></pre></div>
+</div>
+<div id="huds-zip-code-to-census-geography-crosswalks" class="section level2">
+<h2>HUD’s ZIP Code to Census Geography Crosswalks</h2>
+<p>The U.S. Housing and Urban Development (HUD) Department provides ZIP
+code to Census geography crosswalks that can be used to convert ZIP
+codes to Census Tracts, counties, and other geographies. These data are
+available through the <a href="https://www.huduser.gov/portal/datasets/usps_crosswalk.html">HUD
+User website</a>. Unlike the UDS files, ZIP Code Tabulation Areas are
+not one of the geographies including. If HUD data are used, be aware of
+ZIP Codes mapping into multiple Census Tracts, counties, etc. Many users
+may want to pick a “most likely” county (or other Census geometry) based
+on the proportion of commercial or residential customers.</p>
+<p>To use the HUD data, users must first obtain an API key from the <a href="https://www.huduser.gov/portal/dataset/uspszip-api.html">HUD User
+website</a>. Once you have an API key, they can use
+<code>zi_load_crosswalk()</code> to download the data either by passing
+the key directly to the function or by storing the key in their <a href="https://support.posit.co/hc/en-us/articles/360047157094-Managing-R-with-Rprofile-Renviron-Rprofile-site-Renviron-site-rsession-conf-and-repos-conf">.Rprofile</a>
+under the object name <code>hud_key</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">hud_key =</span> <span class="st">&quot;&lt;PASTE KEY&gt;&quot;</span>)</span></code></pre></div>
+<p>The key can also be passed to <code>zi_load_crosswalk</code> directly
+with the <code>key</code> argument:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">zip_source =</span> <span class="st">&quot;HUD&quot;</span>, <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">qtr =</span> <span class="dv">1</span>, <span class="at">target =</span> <span class="st">&quot;COUNTY&quot;</span>,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="sc">+</span>                   <span class="at">query =</span> <span class="fu">c</span>(<span class="st">&quot;63138&quot;</span>, <span class="st">&quot;63139&quot;</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 8</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  ZIP   GEOID RES_RATIO BUS_RATIO OTH_RATIO TOT_RATIO CITY        STATE</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="sc">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>int<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>       <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="dv">1</span> <span class="dv">63138</span> <span class="dv">29189</span>  <span class="fl">0.999</span>       <span class="fl">0.988</span>          <span class="dv">1</span>  <span class="fl">0.999</span>    SAINT LOUIS MO   </span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="dv">2</span> <span class="dv">63138</span> <span class="dv">29510</span>  <span class="fl">0.000518</span>    <span class="fl">0.0124</span>         <span class="dv">0</span>  <span class="fl">0.000956</span> SAINT LOUIS MO   </span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="dv">3</span> <span class="dv">63139</span> <span class="dv">29510</span>  <span class="dv">1</span>           <span class="dv">1</span>              <span class="dv">1</span>  <span class="dv">1</span>        SAINT LOUIS MO </span></code></pre></div>
+<p>Queries can be either a single ZIP Code, a vector of ZIP Codes, a
+state abbreviation, or the word <code>&quot;ALL&quot;</code> to download the
+entire crosswalk file. Using states or <code>&quot;ALL&quot;</code> is available
+from the 1st quarter of 2021 onwards. The <code>target</code> argument
+can be set to “COUNTY”, “TRACT”, “CBSA”, “CBSADIV”, “CD”, or
+“COUNTYSUB”. The <code>year</code> and <code>qtr</code> arguments
+specify the year and quarter of the data to download.</p>
+<p>Note that the above query finds that the ZIP Code <code>63138</code>
+straddles two counties, but the vast majority of both residential and
+commercial customers are in St. Louis City (<code>GEOID</code> is
+<code>29510</code>). If you were building a crosswalk file from these,
+you might want to select St. Louis City as the “most likely” county for
+ZIP Code <code>63138</code>. The</p>
+<p>Since using the HUD data requires a number of analytic choices, it
+cannot be accessed directly through <code>zi_crosswalk()</code>.
+Instead, you should construct the desired crosswalk file yourself and
+then pass it to <code>zi_crosswalk()</code> as a custom dictionary. The
+<code>zi_prep_hud()</code> function can help you prepare the HUD data
+for use in joins:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># access to HUD ZIP Code to County crosswalk for all ZIP Codes in Missouri</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>mo <span class="ot">&lt;-</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">zip_source =</span> <span class="st">&quot;HUD&quot;</span>, <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">qtr =</span> <span class="dv">1</span>, </span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">target =</span> <span class="st">&quot;COUNTY&quot;</span>, <span class="at">query =</span> <span class="st">&quot;MO&quot;</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># prep data</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>mo <span class="ot">&lt;-</span> <span class="fu">zi_prep_hud</span>(mo, <span class="at">by =</span> <span class="st">&quot;residential&quot;</span>)</span></code></pre></div>
+<p>The resulting output contains one row of data for each ZIP Code
+matched with the county that has the highest proportion of residential
+ZIP Codes. Users can also construct a crosswalk using commercial
+addresses or total addresses. When used with multiple states, if the ZIP
+Code straddles two states, two records will be returned.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
