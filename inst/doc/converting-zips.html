@@ -419,7 +419,7 @@ on the proportion of commercial or residential customers.</p>
 <p>To use the HUD data, users must first obtain an API key from the <a href="https://www.huduser.gov/portal/dataset/uspszip-api.html">HUD User
 website</a>. Once you have an API key, they can use
 <code>zi_load_crosswalk()</code> to download the data either by passing
-the key directly to the function or by storing the key in their <a href="https://support.posit.co/hc/en-us/articles/360047157094-Managing-R-with-Rprofile-Renviron-Rprofile-site-Renviron-site-rsession-conf-and-repos-conf">.Rprofile</a>
+the key directly to the function or by storing the key in their <a href="https://docs.posit.co/ide/user/ide/guide/environments/r/managing-r.html">.Rprofile</a>
 under the object name <code>hud_key</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">hud_key =</span> <span class="st">&quot;&lt;PASTE KEY&gt;&quot;</span>)</span></code></pre></div>
 <p>The key can also be passed to <code>zi_load_crosswalk</code> directly
