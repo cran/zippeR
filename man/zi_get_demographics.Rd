@@ -4,8 +4,15 @@
 \alias{zi_get_demographics}
 \title{Download Demographic Data for Five-digit ZCTAs}
 \usage{
-zi_get_demographics(year, variables = NULL, table = NULL,
-    survey, output = "tidy", zcta = NULL, key = NULL)
+zi_get_demographics(
+  year,
+  variables = NULL,
+  table = NULL,
+  survey,
+  output = "tidy",
+  zcta = NULL,
+  key = NULL
+)
 }
 \arguments{
 \item{year}{A four-digit numeric scalar for year. \code{zippeR} currently
@@ -47,7 +54,8 @@ written to \code{.Renviron} by using \code{Sys.getenv("CENSUS_API_KEY")}.}
 }
 \value{
 A tibble containing all demographic data requested in either
-    \code{"tidy"} or \code{"wide"} format.
+    \code{"tidy"} or \code{"wide"} format, or \code{NULL} if the Census
+    Bureau API call fails.
 }
 \description{
 This function returns demographic data for five-digit ZIP Code
@@ -55,7 +63,7 @@ This function returns demographic data for five-digit ZIP Code
     all) USPS ZIP codes.
 }
 \examples{
-\donttest{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
   # download all ZCTAs
   zi_get_demographics(year = 2012, variables = "B01003_001", survey = "acs5")
 
@@ -66,6 +74,5 @@ This function returns demographic data for five-digit ZIP Code
   ## download demographic data
   zi_get_demographics(year = 2012, variables = "B01003_001", survey = "acs5",
       zcta = mo20$GEOID)
-}
-
+\dontshow{\}) # examplesIf}
 }

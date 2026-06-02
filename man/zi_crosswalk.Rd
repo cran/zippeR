@@ -4,17 +4,32 @@
 \alias{zi_crosswalk}
 \title{Crosswalk ZIP Codes with UDS, HUD, or a Custom Dictionary}
 \usage{
-zi_crosswalk(.data, input_var, zip_source = "UDS", source_var,
-    source_result, year = NULL, qtr = NULL, target = NULL, query = NULL,
-    by = NULL, return_max = NULL, key = NULL, return = "id")
+zi_crosswalk(
+  .data,
+  input_var,
+  zip_source = "UDS",
+  source_var,
+  source_result,
+  year = NULL,
+  qtr = NULL,
+  target = NULL,
+  query = NULL,
+  by = NULL,
+  return_max = NULL,
+  key = NULL,
+  return = "id",
+  input_zip,
+  dict = NULL
+)
 }
 \arguments{
 \item{.data}{An "input object" that is data.frame or tibble that contains
 ZIP Codes to be crosswalked.}
 
 \item{input_var}{The column in the input data that contains five-digit ZIP
-Codes. If the input is numeric, it will be transformed to character data
-and leading zeros will be added.}
+Codes, specified as a bare (unquoted) column name. Input must be character
+data with proper leading zeros; use \code{\link{zi_repair}} to fix
+numeric inputs first.}
 
 \item{zip_source}{Required character scalar or data frame; specifies the
 source of ZIP Code crosswalk data. This can be one of either \code{"UDS"}
@@ -29,7 +44,7 @@ data frame containing a custom dictionary; specifies the column name in
 the dictionary object that contains ZCTAs, GEOIDs, or other values.}
 
 \item{year}{Optional four-digit numeric scalar for year; varies based on source.
-For \code{"UDS"}, years 2009 through 2023 are available. For \code{"HUD"},
+For \code{"UDS"}, years 2009 through 2022 are available. For \code{"HUD"},
 years 2010 through 2024 are available. Does not need to be specified when
 a custom dictionary is used.}
 
@@ -64,6 +79,12 @@ stored in your \code{.RProfile} as \code{hud_key}.}
 one of \code{"id"} (default), which appends only the crosswalked value,
 or \code{"all"}, which returns the entire crosswalk file appended to
 the source data.}
+
+\item{input_zip}{\strong{[Deprecated]} Use \code{input_var}
+instead. Will be removed in early 2027.}
+
+\item{dict}{\strong{[Deprecated]} Use \code{zip_source} and
+\code{year} instead. Will be removed in early 2027.}
 }
 \value{
 A \code{tibble} with crosswalk values (or optionally, the full
@@ -78,19 +99,16 @@ This function compares input data containing ZIP Codes with
 # create sample data
 df <- data.frame(id = c(1:3), zip5 = c("63005", "63139", "63636"))
 
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # UDS crosswalk
-\donttest{
-  zi_crosswalk(df, input_var = zip5, zip_source = "UDS", year = 2022)
-}
-
+zi_crosswalk(df, input_var = zip5, zip_source = "UDS", year = 2022)
+\dontshow{\}) # examplesIf}
+\dontshow{if (nzchar(Sys.getenv("hud_key"))) withAutoprint(\{ # examplesIf}
 # HUD crosswalk
-# you will need to replace INSERT_HUD_KEY with your own key
-\dontrun{
-  zi_crosswalk(df, input_var = zip5, zip_source = "HUD", year = 2023,
-    qtr = 1, target = "COUNTY", query = "MO", by = "residential",
-    return_max = TRUE, key = INSERT_HUD_KEY)
-}
-
+zi_crosswalk(df, input_var = zip5, zip_source = "HUD", year = 2023,
+  qtr = 1, target = "COUNTY", query = "MO", by = "residential",
+  return_max = TRUE, key = Sys.getenv("hud_key"))
+\dontshow{\}) # examplesIf}
 # custom dictionary
 ## load sample crosswalk data to simulate custom dictionary
 mo_xwalk <- zi_mo_hud

@@ -52,24 +52,38 @@
 zi_validate <- function(x, style = "zcta5", verbose = FALSE){
 
   # check inputs
-  if (missing(x) == TRUE){
-    stop("Please provide a vector of data for validation.")
+  if (missing(x)){
+    cli::cli_abort("Please provide a vector of data for validation.")
   }
 
-  if (is.data.frame(x) == TRUE){
-    stop("Please provide a vector of data, instead of a data frame, for validation.")
+  if (is.data.frame(x)){
+    cli::cli_abort("Please provide a vector of data, instead of a data frame, for validation.")
   }
 
-  if (style %in% c("zcta5", "zcta3") == FALSE){
-    stop("The 'style' value provided is invalid. Please select either 'zcta5' or 'zcta3'.")
+  if (length(style) != 1){
+    cli::cli_abort("{.arg style} must be a single value.")
   }
 
-  if (is.logical(verbose) == FALSE){
-    stop("The 'verbose' value provided is invalid. Please select either 'TRUE' or 'FALSE'.")
+  if (!(style %in% c("zcta5", "zcta3"))){
+    cli::cli_abort(c(
+      "{.arg style} must be {.val zcta5} or {.val zcta3}.",
+      "i" = "You provided {.val {style}}."
+    ))
+  }
+
+  if (length(verbose) != 1){
+    cli::cli_abort("{.arg verbose} must be a single value.")
+  }
+
+  if (!is.logical(verbose)){
+    cli::cli_abort(c(
+      "{.arg verbose} must be {.val TRUE} or {.val FALSE}.",
+      "i" = "You provided {.val {verbose}}."
+    ))
   }
 
   # ensure character
-  if (is.character(x) == FALSE){
+  if (!is.character(x)){
     chr_out <- FALSE
   } else {
     chr_out <- TRUE
@@ -134,9 +148,9 @@ zi_validate <- function(x, style = "zcta5", verbose = FALSE){
   }
 
   # create output
-  if (verbose == FALSE){
+  if (!verbose){
     out <- all(c(chr_out, len_out2, len_out3, num_out))
-  } else if (verbose == TRUE){
+  } else if (verbose){
 
     if (style == "zcta5"){
       length_prompt <- "No input values are over 5 characters long?"
@@ -165,7 +179,7 @@ zi_validate <- function(x, style = "zcta5", verbose = FALSE){
 #'
 #' @description This function repairs two of the four conditions identified
 #'     in the validation checks with \code{zi_validate()}. For the other two
-#'     conditions, values are conveted \code{NA}. See Details below for the
+#'     conditions, values are converted \code{NA}. See Details below for the
 #'     specific changes made.
 #'
 #' @param x A vector containing ZIP or ZCTA values to be repaired.
@@ -206,30 +220,33 @@ zi_validate <- function(x, style = "zcta5", verbose = FALSE){
 zi_repair <- function(x, style = "zcta5"){
 
   # check inputs
-  if (missing(x) == TRUE){
-    stop("Please provide a vector of data for validation.")
+  if (missing(x)){
+    cli::cli_abort("Please provide a vector of data for validation.")
   }
 
-  if (is.data.frame(x) == TRUE){
-    stop("Please provide a vector of data, instead of a data frame, for validation.")
+  if (is.data.frame(x)){
+    cli::cli_abort("Please provide a vector of data, instead of a data frame, for validation.")
   }
 
-  if (style %in% c("zcta5", "zcta3") == FALSE){
-    stop("The 'style' value provided is invalid. Please select either 'zcta5' or 'zcta3'.")
+  if (!(style %in% c("zcta5", "zcta3"))){
+    cli::cli_abort(c(
+      "{.arg style} must be {.val zcta5} or {.val zcta3}.",
+      "i" = "You provided {.val {style}}."
+    ))
   }
 
   # run validation
   valid <- zi_validate(x, style = style, verbose = TRUE)
 
-  if (all(valid$result) == FALSE){
+  if (!all(valid$result)){
 
     # ensure character
-    if (valid$result[1] == FALSE){
+    if (!valid$result[1]){
       x <- as.character(x)
     }
 
     # identify issue where length is too long
-    if (valid$result[3] == FALSE){
+    if (!valid$result[3]){
 
       if (style == "zcta5"){
         x <- ifelse(nchar(x) > 5, NA, x)
@@ -239,29 +256,29 @@ zi_repair <- function(x, style = "zcta5"){
 
     }
 
-    # convert characters to NA
-    if (valid$result[4] == FALSE){
-      x <- as.character(suppressWarnings(as.numeric(x)))
+    # convert characters to NA (only for values that aren't purely digits)
+    if (!valid$result[4]){
+      x <- ifelse(grepl("^[0-9]+$", x), x, NA_character_)
     }
 
     # ensure padding
-    if (valid$result[2] == FALSE){
+    if (!valid$result[2]){
 
       if (style == "zcta5"){
-        x <- stringr::str_pad(x, 5, pad = "0")
+        x <- ifelse(!is.na(x), formatC(as.integer(x), width = 5, flag = "0"), NA_character_)
       } else if (style == "zcta3"){
-        x <- stringr::str_pad(x, 3, pad = "0")
+        x <- ifelse(!is.na(x), formatC(as.integer(x), width = 3, flag = "0"), NA_character_)
       }
 
     }
 
     # returning warning
-    if (valid$result[3] == FALSE | valid$result[4] == FALSE){
-      warning("NAs introduced by coercion")
+    if (!valid$result[3] | !valid$result[4]){
+      cli::cli_warn("NAs introduced by coercion.")
     }
 
   } else {
-    message("This is a valid vector of ZIP or ZCTA codes - nothing to repair!")
+    cli::cli_inform("This is a valid vector of ZIP or ZCTA codes; nothing to repair.")
   }
 
   # return output

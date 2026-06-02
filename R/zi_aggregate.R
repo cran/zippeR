@@ -4,9 +4,6 @@
 #'    areas, which are considerably larger. These regions are sometimes used in
 #'    American health care contexts for publishing geographic identifiers.
 #'
-#' @usage zi_aggregate(.data, year, extensive = NULL, intensive = NULL,
-#'     intensive_method = "mean", survey, output = "tidy", zcta = NULL,
-#'     key = NULL)
 #'
 #' @param .data A tidy set of demographic data containing one or more variables
 #'     that should be aggregated to three-digit ZCTAs. This data frame or tibble
@@ -55,9 +52,10 @@
 #'     written to \code{.Renviron} by using \code{Sys.getenv("CENSUS_API_KEY")}.
 #'
 #' @return A tibble containing all aggregated data requested in either
-#'     \code{"tidy"} or \code{"wide"} format.
+#'     \code{"tidy"} or \code{"wide"} format, or \code{NULL} if population
+#'     weight data cannot be downloaded from the Census Bureau API.
 #'
-#' @examples
+#' @examplesIf interactive()
 #' # load sample demographic data
 #' mo22_demos <- zi_mo_pop
 #'
@@ -76,12 +74,10 @@
 #' zi_aggregate(mo22_demos, year = 2020, extensive = "B01003_001", survey = "acs5",
 #'   zcta = mo22_zcta3$ZCTA3)
 #'
-#' \donttest{
 #' # aggregate multiple variables, outputting wide data
 #' zi_aggregate(mo22_demos, year = 2020,
 #'   extensive = "B01003_001", intensive = "B19013_001", survey = "acs5",
 #'   zcta = mo22_zcta3$ZCTA3, output = "wide")
-#' }
 #'
 #' @export
 zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
@@ -94,73 +90,125 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
   # }
 
   if (missing(year)){
-    stop("The 'year' value is missing. Please provide a numeric value between 2010 and 2022.")
+    cli::cli_abort("{.arg year} is required. Please provide a numeric value between {.val 2010} and {.val 2022}.")
   }
 
   if (!is.numeric(year)){
-    stop("The 'year' value provided is invalid. Please provide a numeric value between 2010 and 2022.")
+    cli::cli_abort(c(
+      "{.arg year} must be numeric.",
+      "i" = "You provided {.val {year}}."
+    ))
   }
 
   if (length(survey) > 1){
-    stop("One only 'survey' product may be requested at a time.")
+    cli::cli_abort(c(
+      "{.arg survey} must contain a single value.",
+      "i" = "You provided {.val {survey}}."
+    ))
   }
 
   if (!survey %in% c("sf1", "sf3", "acs1", "acs3", "acs5")){
-    stop("The 'survey' requested is invalid. Please choose one of 'sf1', 'sf3', 'acs1', 'acs3', or 'acs5'.")
+    cli::cli_abort(c(
+      "{.arg survey} must be one of {.val sf1}, {.val sf3}, {.val acs1}, {.val acs3}, or {.val acs5}.",
+      "i" = "You provided {.val {survey}}."
+    ))
   }
 
-  if (survey %in% c("sf1", "sf3") == TRUE & year != 2010){
-    stop("The 'year' value provided is invalid for Decennial Census data. Only 2010 may be requested currently.")
+  if (survey %in% c("sf1", "sf3") & year != 2010){
+    cli::cli_abort(c(
+      "{.arg year} must be {.val 2010} for Decennial Census data.",
+      "i" = "You requested {.val {survey}} for {.val {year}}."
+    ))
   }
 
-  if (survey %in% c("acs1", "acs5") == TRUE & year %in% c(2010:2022) == FALSE){
-    stop("The 'year' value provided is invalid for 1- or 5-year American Community Survey data. Please provide a year between 2010 and 2022.")
+  if (survey %in% c("acs1", "acs5") & !(year %in% c(2010:2022))){
+    cli::cli_abort(c(
+      "{.arg year} must be between {.val 2010} and {.val 2022} for {.arg survey} values {.val acs1} and {.val acs5}.",
+      "i" = "You requested {.val {survey}} for {.val {year}}."
+    ))
   }
 
-  if (survey == "acs3" & year %in% c(2010:2013) == FALSE){
-    stop("The 'year' value provided is invalid for 3-year American Community Survey data. Please provide a year between 2010 and 2013.")
+  if (survey == "acs3" & !(year %in% c(2010:2013))){
+    cli::cli_abort(c(
+      "{.arg year} must be between {.val 2010} and {.val 2013} when {.arg survey} is {.val acs3}.",
+      "i" = "You provided {.val {year}}."
+    ))
   }
 
   if (!output %in% c("tidy", "wide")){
-    stop("The 'output' requested is invalid. Please choose one of 'tidy' or 'wide'.")
+    cli::cli_abort(c(
+      "{.arg output} must be {.val tidy} or {.val wide}.",
+      "i" = "You provided {.val {output}}."
+    ))
+  }
+
+  if (!intensive_method %in% c("mean", "median")){
+    cli::cli_abort(c(
+      "{.arg intensive_method} must be {.val mean} or {.val median}.",
+      "i" = "You provided {.val {intensive_method}}."
+    ))
   }
 
   if (!inherits(.data, what = "data.frame")){
-    stop("The '.data' object provided is not a dataframe or dataframe like object. Please provide a dataframe.")
+    cli::cli_abort("{.arg .data} must be a data frame or data frame-like object.")
   }
 
   if (survey %in% c("sf1", "sf3")){
     error <- "Input data appear to be malformed - there should be three columns for Decennial Census data: 'GEOID', 'variable', and 'value'. Note that zi_aggregate() only accepts 'tidy' data."
 
     if (length(names(.data)) != 3){
-      stop(error)
+      cli::cli_abort(error)
     }
 
-    if (all(names(.data) == c("GEOID", "variable", "value")) == FALSE){
-      stop(error)
+    if (!all(names(.data) == c("GEOID", "variable", "value"))){
+      cli::cli_abort(error)
     }
-  } else if (survey %in% c("acs1", "acs3", "acs5") == TRUE){
+  } else if (survey %in% c("acs1", "acs3", "acs5")){
     error <- "Input data appear to be malformed - there should be four columns for ACS data: 'GEOID', 'variable', 'estimate', and 'moe'. Note that zi_aggregate() only accepts 'tidy' data."
 
     if (length(names(.data)) != 4){
-      stop(error)
+      cli::cli_abort(error)
     }
 
-    if (all(names(.data) == c("GEOID", "variable", "estimate", "moe")) == FALSE){
-      stop(error)
+    if (!all(names(.data) == c("GEOID", "variable", "estimate", "moe"))){
+      cli::cli_abort(error)
     }
   }
 
   if (!is.null(zcta)){
     valid <- zi_validate(zcta, style = "zcta3")
 
-    if (valid == FALSE){
-      stop("ZCTA data passed to the 'zcta' argument are invalid. Please use 'zi_validate()' with the 'verbose = TRUE' option to investgiate further. The 'zi_repair()' function may be used to address issues.")
+    if (!valid){
+      cli::cli_abort(c(
+        "{.arg zcta} contains invalid ZCTA values.",
+        "i" = "Use {.fn zi_validate} with {.code verbose = TRUE} to investigate further."
+      ))
     }
   }
 
   if (is.null(extensive) & is.null(intensive)){
-    stop("At least one of 'extensive' or 'intensive' must be provided.")
+    cli::cli_abort("At least one of {.arg extensive} or {.arg intensive} must be provided.")
+  }
+
+  # verify requested variables exist in the data
+  data_vars <- unique(.data$variable)
+  if (!is.null(extensive)){
+    missing_ext <- setdiff(extensive, data_vars)
+    if (length(missing_ext) > 0){
+      cli::cli_abort(c(
+        "{.arg extensive} contains variable names not found in {.arg .data}: {.val {missing_ext}}.",
+        "i" = "Available variables: {.val {data_vars}}."
+      ))
+    }
+  }
+  if (!is.null(intensive)){
+    missing_int <- setdiff(intensive, data_vars)
+    if (length(missing_int) > 0){
+      cli::cli_abort(c(
+        "{.arg intensive} contains variable names not found in {.arg .data}: {.val {missing_int}}.",
+        "i" = "Available variables: {.val {data_vars}}."
+      ))
+    }
   }
 
   # set additional arguments
@@ -182,15 +230,15 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
   .data <- dplyr::arrange(.data, ZCTA3)
 
   # call underlying tidycensus data
-  if (survey %in% c("sf1", "sf3") == TRUE){
+  if (survey %in% c("sf1", "sf3")){
 
     ## summarize data
-    if (extensive_id == TRUE & intensive_id == FALSE){
+    if (extensive_id & !intensive_id){
 
       ## aggregate
       out <- zi_census_extensive(.data)
 
-    } else if (extensive_id == FALSE & intensive_id == TRUE){
+    } else if (!extensive_id & intensive_id){
 
       ## calculate weights
       weights <- zi_census_weights(year = year, key = key)
@@ -202,11 +250,11 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
         out <- NULL
       }
 
-    } else if (extensive_id == TRUE & intensive_id == TRUE){
+    } else if (extensive_id & intensive_id){
 
       ## subset data
-      extensive_df <- dplyr::filter(.data, variable %in% extensive == TRUE)
-      intensive_df <- dplyr::filter(.data, variable %in% intensive == TRUE)
+      extensive_df <- dplyr::filter(.data, variable %in% extensive)
+      intensive_df <- dplyr::filter(.data, variable %in% intensive)
 
       ## calculate weights
       weights <- zi_census_weights(year = year, key = key)
@@ -225,15 +273,15 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
 
     }
 
-  } else if (survey %in% c("acs1", "acs3", "acs5") == TRUE){
+  } else if (survey %in% c("acs1", "acs3", "acs5")){
 
     ## summarize data
-    if (extensive_id == TRUE & intensive_id == FALSE){
+    if (extensive_id & !intensive_id){
 
       ## aggregate
       out <- zi_acs_extensive(.data)
 
-    } else if (extensive_id == FALSE & intensive_id == TRUE){
+    } else if (!extensive_id & intensive_id){
 
       ## calculate weights
       weights <- zi_acs_weights(year = year, survey = survey, key = key)
@@ -245,11 +293,11 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
         out <- NULL
       }
 
-    } else if (extensive_id == TRUE & intensive_id == TRUE){
+    } else if (extensive_id & intensive_id){
 
       ## subset data
-      extensive_df <- dplyr::filter(.data, variable %in% extensive == TRUE)
-      intensive_df <- dplyr::filter(.data, variable %in% intensive == TRUE)
+      extensive_df <- dplyr::filter(.data, variable %in% extensive)
+      intensive_df <- dplyr::filter(.data, variable %in% intensive)
 
       ## calculate weights
       weights <- zi_acs_weights(year = year, survey = survey, key = key)
@@ -271,20 +319,34 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
 
   if (!is.null(out)){
     # optionally subset
-    if (is.null(zcta) == FALSE){
-      out <- dplyr::filter(out, ZCTA3 %in% zcta == TRUE)
+    if (!is.null(zcta)){
+      out <- dplyr::filter(out, ZCTA3 %in% zcta)
     }
 
     # optionally pivot
     if (output == "wide"){
 
-      ## prep names
-      out <- dplyr::rename(out, "E" = "estimate", "M" = "moe")
+      if (survey %in% c("sf1", "sf3")){
+        ## pivot decennial (single value column)
+        out <- stats::reshape(as.data.frame(out), idvar = "ZCTA3", timevar = "variable",
+                              direction = "wide", v.names = "value")
+        names(out) <- sub("^value\\.", "", names(out))
+        rownames(out) <- NULL
+        out <- tibble::as_tibble(out)
+      } else {
+        ## prep names
+        out <- dplyr::rename(out, "E" = "estimate", "M" = "moe")
 
-      ## pivot
-      out <- tidyr::pivot_wider(out, id_cols = "ZCTA3", names_from = "variable",
-                                names_glue = "{variable}{.value}",
-                                values_from = c("E", "M"))
+        ## pivot ACS (estimate + moe columns)
+        out <- stats::reshape(as.data.frame(out), idvar = "ZCTA3", timevar = "variable",
+                              direction = "wide", v.names = c("E", "M"))
+        nms <- names(out)
+        nms <- sub("^E\\.(.+)$", "\\1E", nms)
+        nms <- sub("^M\\.(.+)$", "\\1M", nms)
+        names(out) <- nms
+        rownames(out) <- NULL
+        out <- tibble::as_tibble(out)
+      }
 
       ## re-order names alphabetically
       wide_names <- names(out)
@@ -292,7 +354,7 @@ zi_aggregate <- function(.data, year, extensive = NULL, intensive = NULL,
       wide_names <- c("ZCTA3", sort(wide_names))
 
       ## re-order columns alphabetically
-      out <- dplyr::select(out, wide_names)
+      out <- dplyr::select(out, dplyr::all_of(wide_names))
 
     }
   }
@@ -322,10 +384,10 @@ zi_census_extensive <- function(.data){
 zi_census_intensive <- function(.data, weights, method){
 
   # global variables
-  ZCTA3 = variable = value = weight = NULL
+  ZCTA3 = GEOID = variable = value = weight = NULL
 
   ## join
-  .data <- dplyr::left_join(.data, weights, by = "ZCTA3")
+  .data <- dplyr::left_join(.data, weights, by = c("ZCTA3", "GEOID"))
 
   ## group_by
   .data <- dplyr::group_by(.data, ZCTA3, variable)
@@ -336,8 +398,13 @@ zi_census_intensive <- function(.data, weights, method){
   } else if (method == "median"){
     .data <- dplyr::summarise(
       .data,
-      value = spatstat.univar::weighted.median(value, weight)
+      value = weighted_median(value, weight)
     )
+  } else {
+    cli::cli_abort(c(
+      "{.arg intensive_method} must be {.val mean} or {.val median}.",
+      "i" = "You provided {.val {method}}."
+    ))
   }
 
   ## return output
@@ -370,10 +437,10 @@ zi_census_weights <- function(year, key){
     out <- dplyr::left_join(out, totals, by = "ZCTA3")
 
     ## calculate proportions
-    out <- dplyr::mutate(out, weight = value/total_pop)
+    out <- dplyr::mutate(out, weight = value / total_pop)
 
     ## subset
-    out <- dplyr::select(out, ZCTA3, weight)
+    out <- dplyr::select(out, ZCTA3, GEOID, weight)
   }
 
   ## return output
@@ -408,10 +475,10 @@ zi_acs_extensive <- function(.data){
 zi_acs_intensive <- function(.data, weights, method){
 
   # global variables
-  ZCTA3 = variable = estimate = weight = moe = NULL
+  ZCTA3 = GEOID = variable = estimate = weight = moe = NULL
 
   ## join
-  .data <- dplyr::left_join(.data, weights, by = "ZCTA3")
+  .data <- dplyr::left_join(.data, weights, by = c("ZCTA3", "GEOID"))
 
   ## group_by
   .data <- dplyr::group_by(.data, ZCTA3, variable)
@@ -422,11 +489,15 @@ zi_acs_intensive <- function(.data, weights, method){
                               estimate = stats::weighted.mean(estimate, weight, na.rm = TRUE),
                               moe = stats::weighted.mean(moe, weight, na.rm = TRUE))
   } else if (method == "median"){
-    .data <- dplyr::summarise(
-      .data,
-      estimate = spatstat.univar::weighted.median(estimate, weight),
-      moe = spatstat.univar::weighted.median(moe, weight)
+    .data <- dplyr::summarise(.data,
+                              estimate = weighted_median(estimate, weight),
+                              moe = weighted_median(moe, weight)
     )
+  } else {
+    cli::cli_abort(c(
+      "{.arg intensive_method} must be {.val mean} or {.val median}.",
+      "i" = "You provided {.val {method}}."
+    ))
   }
 
   ## return output
@@ -447,7 +518,7 @@ zi_acs_weights <- function(year, survey, key){
 
   if (!is.null(out)){
     ## prep data
-    out <- dplyr::mutate(out, GEOID = stringr::word(NAME, 2))
+    out <- dplyr::mutate(out, GEOID = sub("^\\S+ ", "", NAME))
     out <- dplyr::mutate(out, ZCTA3 = substr(GEOID, 1, 3), .before = GEOID)
     out <- dplyr::select(out, -NAME)
     out <- dplyr::arrange(out, ZCTA3)
@@ -460,14 +531,13 @@ zi_acs_weights <- function(year, survey, key){
     out <- dplyr::left_join(out, totals, by = "ZCTA3")
 
     ## calculate proportions
-    out <- dplyr::mutate(out, weight = estimate/total_pop)
+    out <- dplyr::mutate(out, weight = estimate / total_pop)
 
     ## subset
-    out <- dplyr::select(out, ZCTA3, weight)
+    out <- dplyr::select(out, ZCTA3, GEOID, weight)
   }
 
   ## return output
   return(out)
 
 }
-

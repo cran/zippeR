@@ -3,8 +3,6 @@
 #' @description This function loads a specific label data set that can be used to
 #'     label five or three-digit ZIP codes in a data frame.
 #'
-#' @usage zi_load_labels(source = "UDS", type = "zip5", include_scf = FALSE,
-#'     vintage = 2022)
 #'
 #' @param source A required character scalar; specifies the source of the label
 #'     data. The only supported sources are \code{'UDS'} (default) and
@@ -34,14 +32,12 @@
 #'     For example, the three digit ZIP Code \code{010} covers Western Massachusetts
 #'     in practice, but is assigned to the state of Connecticut.
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf interactive()
 #'   # zip5 labels via UDS
 #'   zi_load_labels(source = "UDS", type = "zip5", vintage = 2022)
 #'
 #'   # zip3 labels via USPS
 #'   zi_load_labels(source = "USPS", type = "zip3", vintage = 202408)
-#' }
 #'
 #' @export
 zi_load_labels <- function(source = "UDS", type = "zip5", include_scf = FALSE,
@@ -49,40 +45,52 @@ zi_load_labels <- function(source = "UDS", type = "zip5", include_scf = FALSE,
 
   # check inputs
   if (!source %in% c("USPS", "UDS")){
-    stop("The only 'source' values currently supported are 'USPS' and 'UDS'.")
+    cli::cli_abort(c(
+      "{.arg source} must be {.val USPS} or {.val UDS}.",
+      "i" = "You provided {.val {source}}."
+    ))
   }
 
   if (!type %in% c("zip3", "zip5")){
-    stop("The 'type' must be one of 'zip3' or 'zip5'.")
+    cli::cli_abort(c(
+      "{.arg type} must be {.val zip3} or {.val zip5}.",
+      "i" = "You provided {.val {type}}."
+    ))
   }
 
   if (source == "UDS"){
 
     if (type == "zip3"){
-      stop("The 'UDS' source only provides ZIP5 data, replace 'type' with 'zip5'.")
+      cli::cli_abort("{.arg type} must be {.val zip5} when {.arg source} is {.val UDS}.")
     }
 
-    if (is.numeric(vintage) == FALSE){
+    if (!is.numeric(vintage)){
       vintage_num <- as.numeric(vintage)
     } else {
       vintage_num <- vintage
     }
 
     if (!vintage_num %in% c(2009:2022)){
-      stop("The 'UDS' source only provides ZIP5 data between 2009 and 2022.")
+      cli::cli_abort(c(
+        "{.arg vintage} must be between {.val 2009} and {.val 2022} when {.arg source} is {.val UDS}.",
+        "i" = "You provided {.val {vintage}}."
+      ))
     }
 
-    if (include_scf == TRUE){
-      warning("The 'include_scf' argument only modifies the output of 'zip3' labels.")
+    if (include_scf){
+      cli::cli_warn(c(
+        "{.arg include_scf} only affects {.val zip3} labels.",
+        "i" = "{.arg type} is {.val {type}}."
+      ))
     }
 
   } else if (source == "USPS"){
 
     if (type == "zip5"){
-      stop("The 'USPS' source only provides ZIP3 data, replace 'type' with 'zip3'.")
+      cli::cli_abort("{.arg type} must be {.val zip3} when {.arg source} is {.val USPS}.")
     }
 
-    if (is.numeric(vintage) == TRUE){
+    if (is.numeric(vintage)){
       vintage_chr <- as.character(vintage)
     } else {
       vintage_chr <- vintage
@@ -90,10 +98,13 @@ zi_load_labels <- function(source = "UDS", type = "zip5", include_scf = FALSE,
 
     labels_list <- zi_load_labels_list(type = "zip3")
 
-    result <- subset(labels_list, vintage == vintage_chr)
+    result <- subset(labels_list, date == vintage_chr)
 
     if (nrow(result) != 1){
-      stop("The requested vintage is not available. Use 'zi_load_labels_list()' to see available vintages.")
+      cli::cli_abort(c(
+        "{.arg vintage} is not available.",
+        "i" = "Use {.fn zi_load_labels_list} to see available vintages."
+      ))
     }
 
   }
@@ -136,19 +147,26 @@ zi_load_labels_usps <- function(type, include_scf, vintage){
   if (type == "zip3"){
 
     ## read from GitHub
-    out <- readr::read_csv(
-      paste0("https://raw.githubusercontent.com/chris-prener/usps-zip-ref/main/data/zip3_", vintage, ".csv"),
-      col_types = readr::cols(
-        zip3 = readr::col_character(),
-        scf_id = readr::col_character()
-      )
+    out <- tryCatch(
+      utils::read.csv(
+        paste0("https://raw.githubusercontent.com/chris-prener/usps-zip-ref/main/data/zip3_", vintage, ".csv"),
+        colClasses = c(zip3 = "character", scf_id = "character"),
+        stringsAsFactors = FALSE
+      ),
+      error = function(e) {
+        cli::cli_abort(c(
+          "x" = "Failed to download USPS label data from GitHub.",
+          "i" = "Original error: {conditionMessage(e)}"
+        ))
+      }
     )
+    out <- tibble::as_tibble(out)
 
     ## rename cols
     out <- dplyr::rename(out, label_area = destination_area, label_state = destination_state)
 
     ## optionally remove scf cols
-    if (include_scf == FALSE){
+    if (!include_scf){
       out <- subset(out, select = -c(scf_id, scf_name, scf_state))
     }
 

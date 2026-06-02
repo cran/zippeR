@@ -4,7 +4,6 @@
 #'     additional processing to be used in the \code{zi_crosswalk()} function.
 #'     This function prepares the HUD data for use in joins.
 #'
-#' @usage zi_prep_hud(.data, by, return_max = TRUE)
 #'
 #' @param .data The output from \code{zi_load_crosswalk()} with HUD data.
 #' @param by Character scalar; the column name to use for identifying the best
@@ -36,16 +35,33 @@
 zi_prep_hud <- function(.data, by, return_max = TRUE){
 
   # check input data
-  if (missing(by) == TRUE){
-    stop("A value for 'by' value is missing and is required. Please input either 'residential', 'commercial', or 'total'.")
+  if (missing(by)){
+    cli::cli_abort("{.arg by} is required. Please provide {.val residential}, {.val commercial}, or {.val total}.")
   }
 
-  if (by %in% c("residential", "commercial", "total") == FALSE){
-    stop("The 'by' value provided is invalid. Please input either 'residential', 'commercial', or 'total'.")
+  if (!(by %in% c("residential", "commercial", "total"))){
+    cli::cli_abort(c(
+      "{.arg by} must be {.val residential}, {.val commercial}, or {.val total}.",
+      "i" = "You provided {.val {by}}."
+    ))
   }
 
-  if (is.logical(return_max) == FALSE){
-    stop("A logical value must be provided for the 'return_max' argument.")
+  if (!is.logical(return_max)){
+    cli::cli_abort(c(
+      "{.arg return_max} must be {.val TRUE} or {.val FALSE}.",
+      "i" = "You provided {.val {return_max}}."
+    ))
+  }
+
+  # validate .data schema
+  required_cols <- c("zip", "geoid", "state", "res_ratio", "bus_ratio", "tot_ratio")
+  data_cols <- tolower(names(.data))
+  missing_cols <- setdiff(required_cols, data_cols)
+  if (length(missing_cols) > 0){
+    cli::cli_abort(c(
+      "{.arg .data} is missing required columns: {.val {missing_cols}}.",
+      "i" = "Expected HUD crosswalk output from {.fn zi_load_crosswalk}."
+    ))
   }
 
   ## tidy
@@ -59,11 +75,10 @@ zi_prep_hud <- function(.data, by, return_max = TRUE){
     hud <- dplyr::select(hud, zip5 = zip, geoid, state, ratio = tot_ratio)
   }
 
-  # convert state_fips
-  state_df <- tigris::states(year = 2022, cb = TRUE, resolution = "20m")
-  state_df <- sf::st_set_geometry(state_df, value = NULL)
-  state_df <- dplyr::select(state_df, state = STUSPS, state_fips = STATEFP)
-  state_df <- dplyr::filter(state_df, as.numeric(state_fips) < 60)
+  # convert state_fips using static lookup (avoids network download)
+  state_df <- states_lookup[as.numeric(states_lookup$fips) < 60, c("abb", "fips")]
+  names(state_df) <- c("state", "state_fips")
+  state_df$state <- toupper(state_df$state)
 
   out <- dplyr::left_join(hud, state_df, by = "state")
   out <- dplyr::select(out, zip5, geoid, state, state_fips, ratio)
@@ -72,11 +87,12 @@ zi_prep_hud <- function(.data, by, return_max = TRUE){
   out <- dplyr::arrange(out, zip5, state, geoid)
   out <- dplyr::group_by(out, zip5, state)
 
-  if (return_max == TRUE){
+  if (return_max){
     out <- dplyr::arrange(out, geoid)
+    out <- dplyr::filter(out, !is.na(ratio))
     out <- dplyr::filter(out, ratio == max(ratio, na.rm = TRUE))
     out <- dplyr::slice(out, 1)
-  } else if (return_max == FALSE){
+  } else if (!return_max){
     out <- dplyr::mutate(out,
                          max = ifelse(ratio == max(ratio, na.rm = TRUE),
                                       TRUE, FALSE)
@@ -86,7 +102,7 @@ zi_prep_hud <- function(.data, by, return_max = TRUE){
   out <- dplyr::ungroup(out)
 
   # subset on max and prep output
-  out <- dplyr::filter(out, is.na(state) == FALSE)
+  out <- dplyr::filter(out, !is.na(state))
 
   # return output
   return(out)

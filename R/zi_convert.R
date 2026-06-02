@@ -5,13 +5,12 @@
 #'     and corresponds to the sectional center facility (SCF) that processes mail
 #'     for a region.
 #'
-#' @usage zi_convert(.data, input_var, output_var)
 #'
 #' @param .data A data frame containing a column of five-digit ZIP Codes.
-#' @param input_var A character scalar specifying the column name with the five-digit
-#'    ZIP Codes in the data frame.
-#' @param output_var Optional; A character scalar specifying the column name to
-#'    store the three-digit ZIP Codes in the data frame.
+#' @param input_var The column in the data frame containing five-digit ZIP Codes,
+#'    specified as a bare (unquoted) column name (uses non-standard evaluation).
+#' @param output_var Optional; a bare (unquoted) column name to store the
+#'    three-digit ZIP Codes. If omitted, the input column is overwritten.
 #'
 #' @return A tibble containing the original data frame with a new column of
 #'   three-digit ZIP Codes.
@@ -36,30 +35,39 @@ zi_convert <- function(.data, input_var, output_var){
 
   # check inputs
   if (!inherits(.data, what = "data.frame")){
-    stop("The '.data' object provided is not a data frame.")
+    cli::cli_abort("{.arg .data} must be a data frame.")
   }
 
   if (missing(input_var)){
-    stop("A value for 'input_var' is required.")
+    cli::cli_abort("{.arg input_var} is required.")
   }
 
   input_varQN <- as.character(substitute(input_var))
 
-  if (input_varQN %in% names(.data) == FALSE){
-    stop("The given 'input_var' column is not found in your data object.")
+  if (!(input_varQN %in% names(.data))){
+    cli::cli_abort(c(
+      "{.arg input_var} was not found in {.arg .data}.",
+      "i" = "You provided {.val {input_varQN}}."
+    ))
   }
 
   valid <- zi_validate(x = .data[[input_varQN]])
 
-  if (valid == FALSE){
-    stop(paste0("Input ZIP Code data in the '", input_varQN, "' column are invalid. Please use 'zi_validate()' with the 'verbose = TRUE' option to investigate further. The 'zi_repair()' function may be used to address issues."))
+  if (!valid){
+    cli::cli_abort(c(
+      "Input ZIP Code data in {.arg {input_varQN}} are invalid.",
+      "i" = "Use {.fn zi_validate} with {.code verbose = TRUE} to investigate further."
+    ))
   }
 
   if (!missing(output_var)){
-    output_varQN <- as.character(substitute(input_var))
+    output_varQN <- as.character(substitute(output_var))
 
-    if (output_varQN %in% names(.data) == TRUE){
-      warning(paste0("The given 'output_var' column, '", output_varQN , "', was found in your data object, and the column was overwritten."))
+    if (output_varQN %in% names(.data)){
+      cli::cli_warn(c(
+        "{.arg output_var} already exists and was overwritten.",
+        "i" = "The existing column was {.arg {output_varQN}}."
+      ))
     }
   } else {
     output_varQN <- input_varQN

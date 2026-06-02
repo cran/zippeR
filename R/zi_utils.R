@@ -1,18 +1,40 @@
-zi_get_tigris <- function(.f, year, state, cb){
+# Internal weighted median helper (replaces spatstat.univar::weighted.median)
+# Computes the weighted median of x using weights w.
+# NA values in x or w are silently dropped (consistent with na.rm = TRUE in
+# the weighted.mean path used for method = "mean").
+weighted_median <- function(x, w) {
+  ok <- !is.na(x) & !is.na(w)
+  x <- x[ok]
+  w <- w[ok]
+  ord <- order(x)
+  x <- x[ord]
+  w <- w[ord]
+  cum_w <- cumsum(w) / sum(w)
+  x[which(cum_w >= 0.5)[1]]
+}
 
-  ## attempt to use tigris
-  out <- try(
-    suppressWarnings(
-      do.call(what = eval(parse(text = paste0("tigris::", .f))), args = list(year = year, state = state, cb = cb))
-    ),
-    silent = TRUE
+zi_get_tigris <- function(.f, year, state, cb){
+  ## resolve function from tigris namespace
+  tigris_fn <- tryCatch(
+    getExportedValue("tigris", .f),
+    error = function(e) {
+      cli::cli_abort("Function {.fn tigris::{.f}} does not exist. Check the function name.")
+    }
   )
 
-  if (inherits(out, what = "try-error")){
-    cli::cli_inform(message = c("x" = "Errors occurred while attempting to download data from the Census Bureau FTP Server. Returning {.code NULL} instead."))
-
-    out <- NULL
-  }
+  ## attempt to use tigris
+  out <- tryCatch(
+    suppressWarnings(
+      do.call(what = tigris_fn, args = list(year = year, state = state, cb = cb))
+    ),
+    error = function(e) {
+      cli::cli_inform(message = c(
+        "x" = "Download from the Census Bureau FTP Server failed. Returning {.code NULL} instead.",
+        "i" = "Original error: {conditionMessage(e)}"
+      ))
+      NULL
+    }
+  )
 
   return(out)
 
@@ -21,20 +43,20 @@ zi_get_tigris <- function(.f, year, state, cb){
 zi_get_decennial <- function(geography, variables, table, year, output, survey, key){
 
   ## attempt to use tidycensus
-  out <- try(
+  out <- tryCatch(
     suppressWarnings(suppressMessages(
       tidycensus::get_decennial(geography = geography, variables = variables,
                                 table = table, year = year, output = output,
                                 sumfile = survey, key = key)
     )),
-    silent = TRUE
+    error = function(e) {
+      cli::cli_inform(message = c(
+        "x" = "Download from the Census Bureau API failed. Returning {.code NULL} instead.",
+        "i" = "Original error: {conditionMessage(e)}"
+      ))
+      NULL
+    }
   )
-
-  if (inherits(out, what = "try-error")){
-    cli::cli_inform(message = c("x" = "Errors occurred while attempting to download data from the Census Bureau API. Returning {.code NULL} instead."))
-
-    out <- NULL
-  }
 
   return(out)
 
@@ -43,20 +65,20 @@ zi_get_decennial <- function(geography, variables, table, year, output, survey, 
 zi_get_acs <- function(geography, variables, table, year, output, survey, key){
 
   ## attempt to use tidycensus
-  out <- try(
+  out <- tryCatch(
     suppressWarnings(suppressMessages(
       tidycensus::get_acs(geography = geography, variables = variables,
                           table = table, year = year, output = output,
                           survey = survey, key = key)
     )),
-    silent = TRUE
+    error = function(e) {
+      cli::cli_inform(message = c(
+        "x" = "Download from the Census Bureau API failed. Returning {.code NULL} instead.",
+        "i" = "Original error: {conditionMessage(e)}"
+      ))
+      NULL
+    }
   )
-
-  if (inherits(out, what = "try-error")){
-    cli::cli_inform(message = c("x" = "Errors occurred while attempting to download data from the Census Bureau API. Returning {.code NULL} instead."))
-
-    out <- NULL
-  }
 
   return(out)
 
@@ -78,7 +100,7 @@ validate_state <- function(state, .msg=interactive()) {
   # original tigris function
   if (is.null(state)) return(NULL)
 
-  state <- tolower(stringr::str_trim(state)) # forgive white space
+  state <- tolower(trimws(state)) # forgive white space
 
   if (grepl("^[[:digit:]]+$", state)) { # we prbly have FIPS
 

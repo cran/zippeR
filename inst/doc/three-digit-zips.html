@@ -433,8 +433,10 @@ first three digits of the ZCTA, and then summarizing the features to
 dissolve them. Finally,
 <code>sf::st_simplify(out, preserveTopology = TRUE, dTolerance = 20)</code>
 was used to simplify the features and reduce the size of each file.</p>
-<p>Data are available from 2010 through 2023, excluding 2011. If a
-specific state or county is requested using those optional arguments,
+<p>Data are available from 2010 through 2023. Note that 2011 boundaries
+are not separately published by the Census Bureau, so requesting
+<code>year = 2011</code> will use 2010 data (a message is displayed). If
+a specific state or county is requested using those optional arguments,
 included ZCTAs are defined using either
 <code>method = &quot;intersect&quot;</code> or <code>method = &quot;centroid&quot;</code>.
 The <code>&quot;intersect&quot;</code> approach includes any ZCTA that touches a

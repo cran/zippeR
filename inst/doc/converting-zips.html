@@ -378,60 +378,59 @@ that address is a Post Office or some other large volume customer.</p>
 <p>They can be used with <code>zi_crosswalk()</code> to convert given
 ZIP codes to ZCTAs:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="sc">&gt;</span> zips <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), <span class="at">ZIP =</span> <span class="fu">c</span>(<span class="st">&quot;63139&quot;</span>, <span class="st">&quot;63108&quot;</span>, <span class="st">&quot;00501&quot;</span>))</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_crosswalk</span>(zips, <span class="at">input_zip =</span> ZIP, <span class="at">dict =</span> <span class="st">&quot;UDS 2021&quot;</span>) </span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_crosswalk</span>(zips, <span class="at">input_var =</span> ZIP, <span class="at">zip_source =</span> <span class="st">&quot;UDS&quot;</span>, <span class="at">year =</span> <span class="dv">2021</span>) </span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 3                                                                                                                                                                                      </span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>     id ZIP   ZCTA </span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>     id ZIP   source_zcta </span>
 <span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="sc">&lt;</span>int<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
 <span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="dv">1</span>     <span class="dv">1</span> <span class="dv">63139</span> <span class="dv">63139</span></span>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="dv">2</span>     <span class="dv">2</span> <span class="dv">63108</span> <span class="dv">63108</span></span>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="dv">3</span>     <span class="dv">3</span> <span class="dv">00501</span> <span class="dv">11742</span></span></code></pre></div>
-<p>If <code>&quot;UDS 2021&quot;</code> (or any other year between 2009 and 2023)
-is given for <code>dict</code>, <code>zi_crosswalk()</code> will
-automatically download the corresponding UDS crosswalk file. A custom
-crosswalk can also be supplied for <code>dict</code> in lieu of using
-the UDS data, including a crosswalk created from
-<code>zi_load_crosswalk()</code> using HUD data. In that case,
-<code>dict_zip</code> and <code>dict_zcta</code> should be updated to
-correctly match input variable names. <code>style</code> can also be
-used if the custom dictionary contains three digit ZCTAs instead. If no
-custom dictionary is supplied, <code>zi_crosswalk()</code> will try to
-convert the dictionary’s five-digit ZCTAs to three-digits:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_crosswalk</span>(zips, <span class="at">input_zip =</span> ZIP, <span class="at">dict =</span> <span class="st">&quot;UDS 2021&quot;</span>, <span class="at">style =</span> <span class="st">&quot;zcta3&quot;</span>) </span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>Dictionary five<span class="sc">-</span>digit ZCTAs converted to three<span class="sc">-</span>digit ZCTAs.                                                                                                                                            </span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 3</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>     id ZIP   ZCTA3</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="sc">&lt;</span>int<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="dv">1</span>     <span class="dv">1</span> <span class="dv">63139</span> <span class="dv">631</span>  </span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="dv">2</span>     <span class="dv">2</span> <span class="dv">63108</span> <span class="dv">631</span>  </span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="dv">3</span>     <span class="dv">3</span> <span class="dv">00501</span> <span class="dv">117</span>  </span></code></pre></div>
+<p>If <code>&quot;UDS&quot;</code> is given for <code>zip_source</code> with a
+<code>year</code> between 2009 and 2022, <code>zi_crosswalk()</code>
+will automatically download the corresponding UDS crosswalk file. A
+custom crosswalk can also be supplied as a data frame for
+<code>zip_source</code> in lieu of using the UDS data, including a
+crosswalk created from <code>zi_load_crosswalk()</code> using HUD data.
+In that case, <code>source_var</code> and <code>source_result</code>
+should be specified to correctly match input variable names.</p>
+<blockquote>
+<p><strong>Note:</strong> The legacy parameter names
+<code>input_zip</code> and <code>dict</code> are still accepted for
+backwards compatibility but are deprecated in favor of
+<code>input_var</code> and
+<code>zip_source</code>/<code>year</code>.</p>
+</blockquote>
 </div>
 <div id="huds-zip-code-to-census-geography-crosswalks" class="section level2">
 <h2>HUD’s ZIP Code to Census Geography Crosswalks</h2>
 <p>The U.S. Housing and Urban Development (HUD) Department provides ZIP
 code to Census geography crosswalks that can be used to convert ZIP
 codes to Census Tracts, counties, and other geographies. These data are
-available through the <a href="https://www.huduser.gov/portal/datasets/usps_crosswalk.html">HUD
-User website</a>. Unlike the UDS files, ZIP Code Tabulation Areas are
-not one of the geographies including. If HUD data are used, be aware of
-ZIP Codes mapping into multiple Census Tracts, counties, etc. Many users
-may want to pick a “most likely” county (or other Census geometry) based
-on the proportion of commercial or residential customers.</p>
-<p>To use the HUD data, users must first obtain an API key from the <a href="https://www.huduser.gov/portal/dataset/uspszip-api.html">HUD User
-website</a>. Once you have an API key, they can use
-<code>zi_load_crosswalk()</code> to download the data either by passing
-the key directly to the function or by storing the key in their <a href="https://docs.posit.co/ide/user/ide/guide/environments/r/managing-r.html">.Rprofile</a>
+available through the HUD User website
+(<code>https://www.huduser.gov/portal/datasets/usps_crosswalk.html</code>).
+Unlike the UDS files, ZIP Code Tabulation Areas are not one of the
+geographies including. If HUD data are used, be aware of ZIP Codes
+mapping into multiple Census Tracts, counties, etc. Many users may want
+to pick a “most likely” county (or other Census geometry) based on the
+proportion of commercial or residential customers.</p>
+<p>To use the HUD data, users must first obtain an API key from the HUD
+User website
+(<code>https://www.huduser.gov/portal/dataset/uspszip-api.html</code>).
+Once you have an API key, they can use <code>zi_load_crosswalk()</code>
+to download the data either by passing the key directly to the function
+or by storing the key in their <a href="https://docs.posit.co/ide/user/ide/guide/environments/r/managing-r.html">.Rprofile</a>
 under the object name <code>hud_key</code>:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">hud_key =</span> <span class="st">&quot;&lt;PASTE KEY&gt;&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">hud_key =</span> <span class="st">&quot;&lt;PASTE KEY&gt;&quot;</span>)</span></code></pre></div>
 <p>The key can also be passed to <code>zi_load_crosswalk</code> directly
 with the <code>key</code> argument:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">zip_source =</span> <span class="st">&quot;HUD&quot;</span>, <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">qtr =</span> <span class="dv">1</span>, <span class="at">target =</span> <span class="st">&quot;COUNTY&quot;</span>,</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="sc">+</span>                   <span class="at">query =</span> <span class="fu">c</span>(<span class="st">&quot;63138&quot;</span>, <span class="st">&quot;63139&quot;</span>))</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 8</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  ZIP   GEOID RES_RATIO BUS_RATIO OTH_RATIO TOT_RATIO CITY        STATE</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="sc">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>int<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>       <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="dv">1</span> <span class="dv">63138</span> <span class="dv">29189</span>  <span class="fl">0.999</span>       <span class="fl">0.988</span>          <span class="dv">1</span>  <span class="fl">0.999</span>    SAINT LOUIS MO   </span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="dv">2</span> <span class="dv">63138</span> <span class="dv">29510</span>  <span class="fl">0.000518</span>    <span class="fl">0.0124</span>         <span class="dv">0</span>  <span class="fl">0.000956</span> SAINT LOUIS MO   </span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="dv">3</span> <span class="dv">63139</span> <span class="dv">29510</span>  <span class="dv">1</span>           <span class="dv">1</span>              <span class="dv">1</span>  <span class="dv">1</span>        SAINT LOUIS MO </span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">zip_source =</span> <span class="st">&quot;HUD&quot;</span>, <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">qtr =</span> <span class="dv">1</span>, <span class="at">target =</span> <span class="st">&quot;COUNTY&quot;</span>,</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="sc">+</span>                   <span class="at">query =</span> <span class="fu">c</span>(<span class="st">&quot;63138&quot;</span>, <span class="st">&quot;63139&quot;</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># A tibble: 3 × 8</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  ZIP   GEOID RES_RATIO BUS_RATIO OTH_RATIO TOT_RATIO CITY        STATE</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="sc">&lt;</span>chr<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>int<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>chr<span class="sc">&gt;</span>       <span class="er">&lt;</span>chr<span class="sc">&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="dv">1</span> <span class="dv">63138</span> <span class="dv">29189</span>  <span class="fl">0.999</span>       <span class="fl">0.988</span>          <span class="dv">1</span>  <span class="fl">0.999</span>    SAINT LOUIS MO   </span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="dv">2</span> <span class="dv">63138</span> <span class="dv">29510</span>  <span class="fl">0.000518</span>    <span class="fl">0.0124</span>         <span class="dv">0</span>  <span class="fl">0.000956</span> SAINT LOUIS MO   </span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="dv">3</span> <span class="dv">63139</span> <span class="dv">29510</span>  <span class="dv">1</span>           <span class="dv">1</span>              <span class="dv">1</span>  <span class="dv">1</span>        SAINT LOUIS MO </span></code></pre></div>
 <p>Queries can be either a single ZIP Code, a vector of ZIP Codes, a
 state abbreviation, or the word <code>&quot;ALL&quot;</code> to download the
 entire crosswalk file. Using states or <code>&quot;ALL&quot;</code> is available
@@ -451,12 +450,12 @@ Instead, you should construct the desired crosswalk file yourself and
 then pass it to <code>zi_crosswalk()</code> as a custom dictionary. The
 <code>zi_prep_hud()</code> function can help you prepare the HUD data
 for use in joins:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># access to HUD ZIP Code to County crosswalk for all ZIP Codes in Missouri</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>mo <span class="ot">&lt;-</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">zip_source =</span> <span class="st">&quot;HUD&quot;</span>, <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">qtr =</span> <span class="dv">1</span>, </span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">target =</span> <span class="st">&quot;COUNTY&quot;</span>, <span class="at">query =</span> <span class="st">&quot;MO&quot;</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># prep data</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>mo <span class="ot">&lt;-</span> <span class="fu">zi_prep_hud</span>(mo, <span class="at">by =</span> <span class="st">&quot;residential&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># access to HUD ZIP Code to County crosswalk for all ZIP Codes in Missouri</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>mo <span class="ot">&lt;-</span> <span class="fu">zi_load_crosswalk</span>(<span class="at">zip_source =</span> <span class="st">&quot;HUD&quot;</span>, <span class="at">year =</span> <span class="dv">2023</span>, <span class="at">qtr =</span> <span class="dv">1</span>, </span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">target =</span> <span class="st">&quot;COUNTY&quot;</span>, <span class="at">query =</span> <span class="st">&quot;MO&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co"># prep data</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>mo <span class="ot">&lt;-</span> <span class="fu">zi_prep_hud</span>(mo, <span class="at">by =</span> <span class="st">&quot;residential&quot;</span>)</span></code></pre></div>
 <p>The resulting output contains one row of data for each ZIP Code
 matched with the county that has the highest proportion of residential
 ZIP Codes. Users can also construct a crosswalk using commercial

@@ -4,8 +4,14 @@
 \alias{zi_load_crosswalk}
 \title{Load Crosswalk Files}
 \usage{
-zi_load_crosswalk(zip_source = "UDS", year, qtr = NULL, target = NULL,
-    query = NULL, key = NULL)
+zi_load_crosswalk(
+  zip_source = "UDS",
+  year,
+  qtr = NULL,
+  target = NULL,
+  query = NULL,
+  key = NULL
+)
 }
 \arguments{
 \item{zip_source}{Required character scalar; specifies the source of ZIP Code
@@ -13,7 +19,7 @@ crosswalk data. This can be one of either \code{"UDS"} (default) or
 \code{"HUD"}.}
 
 \item{year}{Required four-digit numeric scalar for year; varies based on source.
-For \code{"UDS"}, years 2009 through 2023 are available. For \code{"HUD"},
+For \code{"UDS"}, years 2009 through 2022 are available. For \code{"HUD"},
 years 2010 through 2024 are available.}
 
 \item{qtr}{Numeric scalar, required when \code{zip_code} is \code{"HUD"}.
@@ -46,25 +52,22 @@ Spatial data on USPS ZIP Codes are not published by the U.S.
     of geographies including counties.
 }
 \examples{
-\donttest{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
  # former UDS mapper crosswalks
  zi_load_crosswalk(zip_source = "UDS", year = 2020)
-}
-
-\dontrun{
+\dontshow{\}) # examplesIf}
+\dontshow{if (nzchar(Sys.getenv("hud_key"))) withAutoprint(\{ # examplesIf}
  # HUD crosswalks
- # you will need to replace INSERT_HUD_KEY with your own key
  ## ZIP Code to CBSA crosswalk for all ZIP Codes
  zi_load_crosswalk(zip_source = "HUD", year = 2023, qtr = 1, target = "CBSA",
-     query = "all", key = INSERT_HUD_KEY)
+     query = "all", key = Sys.getenv("hud_key"))
 
  ## ZIP Code to County crosswalk for all ZIP Codes in Missouri
  zi_load_crosswalk(zip_source = "HUD", year = 2023, qtr = 1, target = "COUNTY",
-     query = "MO", key = INSERT_HUD_KEY)
+     query = "MO", key = Sys.getenv("hud_key"))
 
  ## ZIP Code to Tract crosswalk for ZIP Code 63139 in St. Louis City
  zi_load_crosswalk(zip_source = "HUD", year = 2023, qtr = 1, target = "TRACT",
-     query = 63139, key = INSERT_HUD_KEY)
-}
-
+     query = 63139, key = Sys.getenv("hud_key"))
+\dontshow{\}) # examplesIf}
 }

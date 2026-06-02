@@ -4,8 +4,12 @@
 \alias{zi_load_labels}
 \title{Load Label Data}
 \usage{
-zi_load_labels(source = "UDS", type = "zip5", include_scf = FALSE,
-    vintage = 2022)
+zi_load_labels(
+  source = "UDS",
+  type = "zip5",
+  include_scf = FALSE,
+  vintage = 2022
+)
 }
 \arguments{
 \item{source}{A required character scalar; specifies the source of the label
@@ -46,12 +50,11 @@ Labels are approximations of the actual location of a ZIP Code. For
     in practice, but is assigned to the state of Connecticut.
 }
 \examples{
-\donttest{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
   # zip5 labels via UDS
   zi_load_labels(source = "UDS", type = "zip5", vintage = 2022)
 
   # zip3 labels via USPS
   zi_load_labels(source = "USPS", type = "zip3", vintage = 202408)
-}
-
+\dontshow{\}) # examplesIf}
 }

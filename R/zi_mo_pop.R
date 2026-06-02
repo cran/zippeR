@@ -2,12 +2,11 @@
 #'
 #' @description A tibble containing the total population
 #'     and median household income estimates from the 2018-2022 5-year
-#'     U.S. Census Bureau American Communiy Survey estimates for Missouri
+#'     U.S. Census Bureau American Community Survey estimates for Missouri
 #'     five-digit ZIP Code Tabulation Areas (ZCTAs).
 #'
 #' @docType data
 #'
-#' @usage data(zi_mo_pop)
 #'
 #' @format A data frame with 2664 rows and 4 variables:
 #' \describe{

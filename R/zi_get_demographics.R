@@ -4,8 +4,6 @@
 #'     Tabulation Areas (ZCTAs), which are rough approximations of many (but not
 #'     all) USPS ZIP codes.
 #'
-#' @usage zi_get_demographics(year, variables = NULL, table = NULL,
-#'     survey, output = "tidy", zcta = NULL, key = NULL)
 #'
 #' @param year A four-digit numeric scalar for year. \code{zippeR} currently
 #'     supports data for from 2010 to 2022. Different \code{survey} products
@@ -39,10 +37,10 @@
 #'     written to \code{.Renviron} by using \code{Sys.getenv("CENSUS_API_KEY")}.
 #'
 #' @return A tibble containing all demographic data requested in either
-#'     \code{"tidy"} or \code{"wide"} format.
+#'     \code{"tidy"} or \code{"wide"} format, or \code{NULL} if the Census
+#'     Bureau API call fails.
 #'
-#' @examples
-#' \donttest{
+#' @examplesIf interactive()
 #'   # download all ZCTAs
 #'   zi_get_demographics(year = 2012, variables = "B01003_001", survey = "acs5")
 #'
@@ -53,7 +51,6 @@
 #'   ## download demographic data
 #'   zi_get_demographics(year = 2012, variables = "B01003_001", survey = "acs5",
 #'       zcta = mo20$GEOID)
-#' }
 #'
 #' @export
 zi_get_demographics <- function(year, variables = NULL,
@@ -61,48 +58,76 @@ zi_get_demographics <- function(year, variables = NULL,
                                 zcta = NULL, key = NULL){
 
   # check inputs
-  if (missing(year) == TRUE){
-    stop("The 'year' value is missing. Please provide a numeric value between 2010 and 2022.")
+  if (missing(year)){
+    cli::cli_abort("{.arg year} is required. Please provide a numeric value between {.val 2010} and {.val 2022}.")
   }
 
-  if (is.numeric(year) == FALSE){
-    stop("The 'year' value provided is invalid. Please provide a numeric value between 2010 and 2022.")
+  if (!is.numeric(year)){
+    cli::cli_abort(c(
+      "{.arg year} must be numeric.",
+      "i" = "You provided {.val {year}}."
+    ))
   }
 
   if (length(survey) > 1){
-    stop("One only 'survey' product may be requested at a time.")
+    cli::cli_abort(c(
+      "{.arg survey} must contain a single value.",
+      "i" = "You provided {.val {survey}}."
+    ))
   }
 
-  if (survey %in% c("sf1", "sf3", "acs1", "acs3", "acs5") == FALSE){
-    stop("The 'survey' requested is invalid. Please choose one of 'sf1', 'sf3', 'acs1', 'acs3', or 'acs5'.")
+  if (!(survey %in% c("sf1", "sf3", "acs1", "acs3", "acs5"))){
+    cli::cli_abort(c(
+      "{.arg survey} must be one of {.val sf1}, {.val sf3}, {.val acs1}, {.val acs3}, or {.val acs5}.",
+      "i" = "You provided {.val {survey}}."
+    ))
   }
 
-  if (survey %in% c("sf1", "sf3") == TRUE & year != 2010){
-    stop("The 'year' value provided is invalid for Decennial Census data. Only 2010 may be requested currently.")
+  if (survey %in% c("sf1", "sf3") & year != 2010){
+    cli::cli_abort(c(
+      "{.arg year} must be {.val 2010} for Decennial Census data.",
+      "i" = "You requested {.val {survey}} for {.val {year}}."
+    ))
   }
 
-  if (survey %in% c("acs1", "acs5") == TRUE & year %in% c(2010:2022) == FALSE){
-    stop("The 'year' value provided is invalid for 1- or 5-year American Community Survey data. Please provide a year between 2010 and 2022.")
+  if (survey %in% c("acs1", "acs5") & !(year %in% c(2010:2022))){
+    cli::cli_abort(c(
+      "{.arg year} must be between {.val 2010} and {.val 2022} for {.arg survey} values {.val acs1} and {.val acs5}.",
+      "i" = "You requested {.val {survey}} for {.val {year}}."
+    ))
   }
 
-  if (survey == "acs3" & year %in% c(2010:2013) == FALSE){
-    stop("The 'year' value provided is invalid for 3-year American Community Survey data. Please provide a year between 2010 and 2013.")
+  if (survey == "acs3" & !(year %in% c(2010:2013))){
+    cli::cli_abort(c(
+      "{.arg year} must be between {.val 2010} and {.val 2013} when {.arg survey} is {.val acs3}.",
+      "i" = "You provided {.val {year}}."
+    ))
   }
 
-  if (is.null(variables) == FALSE & is.null(table) == FALSE){
-    stop("The 'variables' or 'table' arguments cannot be used simultaneously. Please choose one or the other.")
+  if (!is.null(variables) & !is.null(table)){
+    cli::cli_abort("{.arg variables} and {.arg table} cannot be used together.")
   }
 
-  if (output %in% c("tidy", "wide") == FALSE){
-    stop("The 'output' requested is invalid. Please choose one of 'tidy' or 'wide'.")
+  if (!(output %in% c("tidy", "wide"))){
+    cli::cli_abort(c(
+      "{.arg output} must be {.val tidy} or {.val wide}.",
+      "i" = "You provided {.val {output}}."
+    ))
   }
 
-  if (is.null(zcta) == FALSE){
+  if (!is.null(zcta)){
     valid <- zi_validate(zcta)
 
-    if (valid == FALSE){
-      stop("ZCTA data passed to the 'zcta' argument are invalid. Please use 'zi_validate()' with the 'verbose = TRUE' option to investgiate further. The 'zi_repair()' function may be used to address isses.")
+    if (!valid){
+      cli::cli_abort(c(
+        "{.arg zcta} contains invalid ZCTA values.",
+        "i" = "Use {.fn zi_validate} with {.code verbose = TRUE} to investigate further."
+      ))
     }
+  }
+
+  if (is.null(variables) & is.null(table)){
+    cli::cli_abort("Either {.arg variables} or {.arg table} must be provided.")
   }
 
   # call underlying tidycensus data
@@ -122,20 +147,20 @@ zi_get_demographics <- function(year, variables = NULL,
 
     ## prep data
     if (!is.null(out)){
-      out <- dplyr::mutate(out, GEOID = stringr::word(NAME, 2))
+      out <- dplyr::mutate(out, GEOID = sub("^\\S+ ", "", NAME))
     }
 
   }
 
   # tidy if data are returned
-  if(!is.null(out)){
+  if (!is.null(out)){
     ## remove additional cols and re-arrange
     out <- dplyr::select(out, -NAME)
     out <- dplyr::arrange(out, GEOID)
 
     ## optionally subset
-    if (is.null(zcta) == FALSE){
-      out <- dplyr::filter(out, GEOID %in% zcta == TRUE)
+    if (!is.null(zcta)){
+      out <- dplyr::filter(out, GEOID %in% zcta)
     }
   }
 

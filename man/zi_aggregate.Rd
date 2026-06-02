@@ -4,9 +4,17 @@
 \alias{zi_aggregate}
 \title{Aggregate ZCTAs to Three-digit ZCTAs}
 \usage{
-zi_aggregate(.data, year, extensive = NULL, intensive = NULL,
-    intensive_method = "mean", survey, output = "tidy", zcta = NULL,
-    key = NULL)
+zi_aggregate(
+  .data,
+  year,
+  extensive = NULL,
+  intensive = NULL,
+  intensive_method = "mean",
+  survey,
+  output = "tidy",
+  zcta = NULL,
+  key = NULL
+)
 }
 \arguments{
 \item{.data}{A tidy set of demographic data containing one or more variables
@@ -65,7 +73,8 @@ written to \code{.Renviron} by using \code{Sys.getenv("CENSUS_API_KEY")}.}
 }
 \value{
 A tibble containing all aggregated data requested in either
-    \code{"tidy"} or \code{"wide"} format.
+    \code{"tidy"} or \code{"wide"} format, or \code{NULL} if population
+    weight data cannot be downloaded from the Census Bureau API.
 }
 \description{
 This function takes input ZCTA data and aggregates it to three-digit
@@ -73,6 +82,7 @@ This function takes input ZCTA data and aggregates it to three-digit
    American health care contexts for publishing geographic identifiers.
 }
 \examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # load sample demographic data
 mo22_demos <- zi_mo_pop
 
@@ -91,11 +101,9 @@ mo22_zcta3 <- zi_mo_zcta3
 zi_aggregate(mo22_demos, year = 2020, extensive = "B01003_001", survey = "acs5",
   zcta = mo22_zcta3$ZCTA3)
 
-\donttest{
 # aggregate multiple variables, outputting wide data
 zi_aggregate(mo22_demos, year = 2020,
   extensive = "B01003_001", intensive = "B19013_001", survey = "acs5",
   zcta = mo22_zcta3$ZCTA3, output = "wide")
-}
-
+\dontshow{\}) # examplesIf}
 }

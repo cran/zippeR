@@ -4,16 +4,24 @@
 \alias{zi_label}
 \title{Label ZIP Codes with Contextual Data}
 \usage{
-zi_label(.data, input_var, label_source = "UDS", source_var,
-    type = "zip5", include_scf = FALSE, vintage = 2022)
+zi_label(
+  .data,
+  input_var,
+  label_source = "UDS",
+  source_var,
+  type = "zip5",
+  include_scf = FALSE,
+  vintage = 2022
+)
 }
 \arguments{
 \item{.data}{An "input object" that is data.frame or tibble that contains
 ZIP Codes to be crosswalked.}
 
 \item{input_var}{The column in the input data that contains five-digit ZIP
-Codes. If the input is numeric, it will be transformed to character data
-and leading zeros will be added.}
+Codes, specified as a bare (unquoted) column name. Input must be character
+data with proper leading zeros; use \code{\link{zi_repair}} to fix
+numeric inputs first.}
 
 \item{label_source}{Required character scalar or data frame; specifies the
 source of the label data. This could be either \code{'UDS'} (default) or
@@ -70,17 +78,14 @@ df <- data.frame(
   zip3 = c("630", "631", "636")
 )
 
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # UDS crosswalk
-\donttest{
-  zi_label(df, input_var = zip5, label_source = "UDS", vintage = 2022)
-}
+zi_label(df, input_var = zip5, label_source = "UDS", vintage = 2022)
 
 # USPS crosswalk
-\donttest{
-  zi_label(df, input_var = zip3, label_source = "USPS", type = "zip3",
-    vintage = 202408)
-}
-
+zi_label(df, input_var = zip3, label_source = "USPS", type = "zip3",
+  vintage = 202408)
+\dontshow{\}) # examplesIf}
 # custom dictionary
 ## load sample ZIP3 label data to simulate custom dictionary
 mo_label <- zi_mo_usps

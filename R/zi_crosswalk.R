@@ -4,15 +4,13 @@
 #'     a crosswalk file that will append ZCTAs. This is an important step because
 #'     not all ZIP Codes have the same five digits as their enclosing ZCTA.
 #'
-#' @usage zi_crosswalk(.data, input_var, zip_source = "UDS", source_var,
-#'     source_result, year = NULL, qtr = NULL, target = NULL, query = NULL,
-#'     by = NULL, return_max = NULL, key = NULL, return = "id")
 #'
 #' @param .data An "input object" that is data.frame or tibble that contains
 #'     ZIP Codes to be crosswalked.
 #' @param input_var The column in the input data that contains five-digit ZIP
-#'     Codes. If the input is numeric, it will be transformed to character data
-#'     and leading zeros will be added.
+#'     Codes, specified as a bare (unquoted) column name. Input must be character
+#'     data with proper leading zeros; use \code{\link{zi_repair}} to fix
+#'     numeric inputs first.
 #' @param zip_source Required character scalar or data frame; specifies the
 #'     source of ZIP Code crosswalk data. This can be one of either \code{"UDS"}
 #'     (default) or \code{"HUD"}, or a data frame containing a custom dictionary.
@@ -23,7 +21,7 @@
 #'     data frame containing a custom dictionary; specifies the column name in
 #'     the dictionary object that contains ZCTAs, GEOIDs, or other values.
 #' @param year Optional four-digit numeric scalar for year; varies based on source.
-#'     For \code{"UDS"}, years 2009 through 2023 are available. For \code{"HUD"},
+#'     For \code{"UDS"}, years 2009 through 2022 are available. For \code{"HUD"},
 #'     years 2010 through 2024 are available. Does not need to be specified when
 #'     a custom dictionary is used.
 #' @param qtr Numeric scalar, required when \code{zip_code} is \code{"HUD"}.
@@ -52,6 +50,11 @@
 #'     or \code{"all"}, which returns the entire crosswalk file appended to
 #'     the source data.
 #'
+#' @param input_zip \strong{[Deprecated]} Use \code{input_var}
+#'     instead. Will be removed in early 2027.
+#' @param dict \strong{[Deprecated]} Use \code{zip_source} and
+#'     \code{year} instead. Will be removed in early 2027.
+#'
 #' @return A \code{tibble} with crosswalk values (or optionally, the full
 #'     crosswalk file) appended based on the \code{return} argument.
 #'
@@ -59,19 +62,17 @@
 #' # create sample data
 #' df <- data.frame(id = c(1:3), zip5 = c("63005", "63139", "63636"))
 #'
+#' @examplesIf interactive()
 #' # UDS crosswalk
-#' \donttest{
-#'   zi_crosswalk(df, input_var = zip5, zip_source = "UDS", year = 2022)
-#' }
+#' zi_crosswalk(df, input_var = zip5, zip_source = "UDS", year = 2022)
 #'
+#' @examplesIf nzchar(Sys.getenv("hud_key"))
 #' # HUD crosswalk
-#' # you will need to replace INSERT_HUD_KEY with your own key
-#' \dontrun{
-#'   zi_crosswalk(df, input_var = zip5, zip_source = "HUD", year = 2023,
-#'     qtr = 1, target = "COUNTY", query = "MO", by = "residential",
-#'     return_max = TRUE, key = INSERT_HUD_KEY)
-#' }
+#' zi_crosswalk(df, input_var = zip5, zip_source = "HUD", year = 2023,
+#'   qtr = 1, target = "COUNTY", query = "MO", by = "residential",
+#'   return_max = TRUE, key = Sys.getenv("hud_key"))
 #'
+#' @examples
 #' # custom dictionary
 #' ## load sample crosswalk data to simulate custom dictionary
 #' mo_xwalk <- zi_mo_hud
@@ -89,7 +90,34 @@
 zi_crosswalk <- function(.data, input_var, zip_source = "UDS", source_var,
                          source_result, year = NULL, qtr = NULL,
                          target = NULL, query = NULL, by = NULL, return_max = NULL,
-                         key = NULL, return = "id"){
+                         key = NULL, return = "id",
+                         input_zip, dict = NULL){
+
+  # handle deprecated arguments
+  if (!is.null(dict)){
+    cli::cli_warn(c(
+      "{.arg dict} is deprecated and will be removed in early 2027.",
+      "i" = "Use {.arg zip_source} and {.arg year} instead."
+    ))
+    if (inherits(dict, "data.frame")){
+      zip_source <- dict
+    } else if (is.character(dict)){
+      parts <- strsplit(dict, " ")[[1]]
+      if (length(parts) == 2){
+        zip_source <- parts[1]
+        if (is.null(year)) year <- as.numeric(parts[2])
+      } else {
+        zip_source <- dict
+      }
+    }
+  }
+
+  if (!missing(input_zip)){
+    cli::cli_warn(c(
+      "{.arg input_zip} is deprecated and will be removed in early 2027.",
+      "i" = "Use {.arg input_var} instead."
+    ))
+  }
 
   # check inputs
   ## determine workflow
@@ -98,101 +126,146 @@ zi_crosswalk <- function(.data, input_var, zip_source = "UDS", source_var,
   } else if (zip_source %in% c("UDS", "HUD")){
     workflow <- "api"
   } else {
-    stop("The 'zip_source' argument is invalid. Please provide either 'UDS', 'HUD', or a custom dictionary.")
+    cli::cli_abort(c(
+      "{.arg zip_source} must be {.val UDS}, {.val HUD}, or a data frame.",
+      "i" = "You provided {.val {zip_source}}."
+    ))
   }
 
   ## checks regardless of workflow
   if (!inherits(.data, what = "data.frame")){
-    stop("The '.data' object provided is not a data frame.")
+    cli::cli_abort("{.arg .data} must be a data frame.")
   }
 
-  if (missing(input_var)){
-    stop("The 'input_var' argument is missing. Please provide the column name in '.data' that contains ZIP Code values.")
+  # resolve input_var (handle deprecated input_zip)
+  if (!missing(input_zip)){
+    input_varQN <- as.character(substitute(input_zip))
+  } else if (missing(input_var)){
+    cli::cli_abort("{.arg input_var} is required. Provide the column in {.arg .data} that contains ZIP Code values.")
+  } else {
+    input_varQN <- as.character(substitute(input_var))
   }
 
-  input_varQN <- as.character(substitute(input_var))
-
-  if (input_varQN %in% names(.data) == FALSE){
-    stop("The given 'input_var' column is not found in your input object.")
+  if (!(input_varQN %in% names(.data))){
+    cli::cli_abort(c(
+      "{.arg input_var} was not found in {.arg .data}.",
+      "i" = "You provided {.val {input_varQN}}."
+    ))
   }
 
   valid <- zi_validate(x = .data[[input_varQN]])
 
-  if (valid == FALSE){
-    stop(paste0("Input ZIP Code data in the '", input_varQN, "' column are invalid. Please use 'zi_validate()' with the 'verbose = TRUE' option to investigate further. The 'zi_repair()' function may be used to address issues."))
+  if (!valid){
+    cli::cli_abort(c(
+      "Input ZIP Code data in {.arg {input_varQN}} are invalid.",
+      "i" = "Use {.fn zi_validate} with {.code verbose = TRUE} to investigate further."
+    ))
   }
 
   if (!return %in% c("id", "all")){
-    stop("The 'return' value provided is invalid. Please input either 'id' or 'all'.")
+    cli::cli_abort(c(
+      "{.arg return} must be {.val id} or {.val all}.",
+      "i" = "You provided {.val {return}}."
+    ))
   }
 
   ## checks dependent on workflow
   if (workflow == "custom"){
 
     if (missing(source_var)){
-      stop("The 'source_var' argument is missing. Please provide the column name in the dictionary object that contains ZIP Code values.")
+      cli::cli_abort("{.arg source_var} is required. Provide the column in {.arg zip_source} that contains ZIP Code values.")
     }
 
     source_varQN <- as.character(substitute(source_var))
 
-    if (source_varQN %in% names(zip_source) == FALSE){
-      stop("The given 'source_var' column is not found in your dictionary object.")
+    if (!(source_varQN %in% names(zip_source))){
+      cli::cli_abort(c(
+        "{.arg source_var} was not found in {.arg zip_source}.",
+        "i" = "You provided {.val {source_varQN}}."
+      ))
     }
 
     valid <- zi_validate(x = zip_source[[source_varQN]], style = "zcta5")
 
-    if (valid == FALSE){
-      stop(paste0("Dictionary ZCTA data in the '", source_varQN, "' column are invalid. Please use 'zi_validate()' with the 'verbose = TRUE' option to investigate further. The 'zi_repair()' function may be used to address issues."))
+    if (!valid){
+      cli::cli_abort(c(
+        "Dictionary ZCTA data in {.arg {source_varQN}} are invalid.",
+        "i" = "Use {.fn zi_validate} with {.code verbose = TRUE} to investigate further."
+      ))
     }
 
     if (missing(source_result)){
-      stop("The 'source_result' argument is missing. Please provide the column name in the dictionary object that contains the crosswalk result values.")
+      cli::cli_abort("{.arg source_result} is required. Provide the result column in {.arg zip_source}.")
     }
 
     source_resultQN <- as.character(substitute(source_result))
 
-    if (source_resultQN %in% names(zip_source) == FALSE){
-      stop("The given 'source_result' column is not found in your dictionary object.")
+    if (!(source_resultQN %in% names(zip_source))){
+      cli::cli_abort(c(
+        "{.arg source_result} was not found in {.arg zip_source}.",
+        "i" = "You provided {.val {source_resultQN}}."
+      ))
     }
 
   } else if (workflow == "api"){
 
-    if (is.numeric(year) == FALSE){
-      stop("The 'year' value provided is invalid. Please provide a numeric value for the requested year.")
+    if (!is.numeric(year)){
+      cli::cli_abort(c(
+        "{.arg year} must be numeric.",
+        "i" = "You provided {.val {year}}."
+      ))
     }
 
-    if (zip_source == "UDS" & year %in% c(2009:2022) == FALSE){
-      stop("The 'year' value provided is invalid for UDS data. Please provide a year between 2009 and 2022.")
+    if (zip_source == "UDS" & !(year %in% c(2009:2022))){
+      cli::cli_abort(c(
+        "{.arg year} must be between {.val 2009} and {.val 2022} when {.arg zip_source} is {.val UDS}.",
+        "i" = "You provided {.val {year}}."
+      ))
     }
 
     if (zip_source == "HUD"){
 
-      if (year %in% c(2010:2024) == FALSE){
-        stop("The 'year' value provided is invalid for HUD data. Please provide a year between 2010 and 2024.")
+      if (!(year %in% c(2010:2024))){
+        cli::cli_abort(c(
+          "{.arg year} must be between {.val 2010} and {.val 2024} when {.arg zip_source} is {.val HUD}.",
+          "i" = "You provided {.val {year}}."
+        ))
       }
 
-      if (qtr %in% c(1:4) == FALSE){
-        stop("The 'qtr' value is required when 'zip_source' is 'HUD'. Please provide a value between 1 and 4.")
+      if (!(qtr %in% c(1:4))){
+        cli::cli_abort(c(
+          "{.arg qtr} must be between {.val 1} and {.val 4} when {.arg zip_source} is {.val HUD}.",
+          "i" = "You provided {.val {qtr}}."
+        ))
       }
 
-      if (target %in% c("TRACT", "COUNTY", "CBSA", "CBSADIV", "CD", "COUNTYSUB") == FALSE){
-        stop("The 'target' value is required when 'zip_source' is 'HUD'. Please provide a valid target value (see help file).")
+      if (!(target %in% c("TRACT", "COUNTY", "CBSA", "CBSADIV", "CD", "COUNTYSUB"))){
+        cli::cli_abort(c(
+          "{.arg target} is invalid when {.arg zip_source} is {.val HUD}.",
+          "i" = "Use one of {.val TRACT}, {.val COUNTY}, {.val CBSA}, {.val CBSADIV}, {.val CD}, or {.val COUNTYSUB}."
+        ))
       }
 
-      if (is.null(query) == TRUE){
-        stop("The 'query' value is required when 'zip_source' is 'HUD'. Please provide a valid query value (see help file).")
+      if (is.null(query)){
+        cli::cli_abort("{.arg query} is required when {.arg zip_source} is {.val HUD}.")
       }
 
       if (is.null(by)){
-        stop("A valid value for 'by' value is required. Please input either 'residential', 'commercial', or 'total'.")
+        cli::cli_abort("{.arg by} is required. Please provide {.val residential}, {.val commercial}, or {.val total}.")
       }
 
-      if (by %in% c("residential", "commercial", "total") == FALSE){
-        stop("The 'by' value provided is invalid. Please input either 'residential', 'commercial', or 'total'.")
+      if (!(by %in% c("residential", "commercial", "total"))){
+        cli::cli_abort(c(
+          "{.arg by} must be {.val residential}, {.val commercial}, or {.val total}.",
+          "i" = "You provided {.val {by}}."
+        ))
       }
 
       if (!is.logical(return_max)){
-        stop("A logical value must be provided for the 'return_max' argument.")
+        cli::cli_abort(c(
+          "{.arg return_max} must be {.val TRUE} or {.val FALSE}.",
+          "i" = "You provided {.val {return_max}}."
+        ))
       }
     }
   }
@@ -248,7 +321,7 @@ zi_crosswalk <- function(.data, input_var, zip_source = "UDS", source_var,
 
   if (return == "all"){
     dict_names <- names(dict)[names(dict) != source_varQN]
-    dict <- dplyr::rename_with(dict, .fn = ~paste0("source_", .x), .cols = dict_names)
+    dict <- dplyr::rename_with(dict, .fn = ~paste0("source_", .x), .cols = dplyr::all_of(dict_names))
   }
 
   # create output
@@ -256,11 +329,12 @@ zi_crosswalk <- function(.data, input_var, zip_source = "UDS", source_var,
   dict_names <- names(dict)[names(dict) != source_varQN]
 
   if (any(dict_names %in% names(.data))){
-    warning("The column names in the dictionary object conflict with column names in the input data. Please inspect output carefully.")
+    cli::cli_warn("Column names in {.arg zip_source} conflict with columns in {.arg .data}. Inspect the output carefully.")
   }
 
   ## join with input data
-  out <- merge(x = .data, y = dict, by.x = input_varQN, by.y = source_varQN, all.x = TRUE, all.y = FALSE)
+  join_by <- stats::setNames(source_varQN, input_varQN)
+  out <- dplyr::left_join(.data, dict, by = join_by)
 
   ## create tibble
   out <- tibble::as_tibble(out)
